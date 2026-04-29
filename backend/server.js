@@ -58,6 +58,30 @@ app.post('/api/scrape/run', require('./routes/auth').requireAuth, async (req, re
 // Health check (must be before the frontend catch-all)
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// Debug scrape: actually launch Chrome and return page info (admin only)
+app.get('/api/scrape/test', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { launchBrowser, newPage } = require('./scrapers/browser');
+    const browser = await launchBrowser();
+    const page = await newPage(browser);
+    const url = req.query.url || 'https://www.hudhomestore.gov/Listing/PropertySearchResult.aspx?state=TX&county=DALLAS&searchType=searchByCounty&pageNumber=1&pageSize=50';
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+    const title = await page.title();
+    const html  = await page.content();
+    await browser.close();
+    res.json({
+      url, title,
+      htmlLength: html.length,
+      htmlSnippet: html.substring(0, 2000),
+      hasTable: html.includes('<table'),
+      hasListings: html.includes('listdate') || html.includes('property') || html.includes('Dallas'),
+    });
+  } catch (e) {
+    res.json({ error: e.message.substring(0, 500) });
+  }
+});
+
 // Diagnostic: check Chromium availability (admin only)
 app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, res) => {
   const { execSync } = require('child_process');
