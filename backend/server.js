@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
+const db         = require('./db/database');
 const { initDB } = require('./db/database');
 
 const app = express();
@@ -54,6 +55,9 @@ app.post('/api/scrape/run', require('./routes/auth').requireAuth, async (req, re
   runAllScrapers().catch(console.error);
 });
 
+// Health check (must be before the frontend catch-all)
+app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
@@ -62,9 +66,6 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
-
-// Health check
-app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // Boot: init DB first, then start listening
 (async () => {
