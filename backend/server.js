@@ -61,14 +61,30 @@ app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().
 // Diagnostic: check Chromium availability (admin only)
 app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, res) => {
   const { execSync } = require('child_process');
+  const fs = require('fs');
   const checks = {};
-  for (const cmd of ['which chromium','which chromium-browser','which google-chrome','ls /run/current-system/sw/bin/chromium']) {
+  // System chrome checks
+  for (const cmd of ['which chromium','which chromium-browser','which google-chrome']) {
     try { checks[cmd] = execSync(cmd, { stdio: ['pipe','pipe','ignore'] }).toString().trim(); }
     catch { checks[cmd] = 'not found'; }
   }
-  try { checks['chromium --version'] = execSync('chromium --version', { stdio: ['pipe','pipe','ignore'] }).toString().trim(); }
-  catch { checks['chromium --version'] = 'error'; }
-  res.json({ env: { CHROMIUM_PATH: process.env.CHROMIUM_PATH }, checks });
+  // Puppeteer executable path
+  try {
+    const { executablePath } = require('puppeteer');
+    const p = executablePath();
+    checks['puppeteer.executablePath()'] = p;
+    checks['puppeteer binary exists'] = fs.existsSync(p) ? 'YES' : 'NO';
+  } catch(e) { checks['puppeteer.executablePath()'] = 'error: ' + e.message; }
+  // Cache dir contents
+  try {
+    const cacheDir = process.env.PUPPETEER_CACHE_DIR || '';
+    checks['PUPPETEER_CACHE_DIR'] = cacheDir;
+    if (cacheDir) checks['cache dir exists'] = fs.existsSync(cacheDir) ? 'YES' : 'NO';
+    // find chrome binary recursively
+    const found = execSync(`find ${cacheDir || '/app/backend/.chromium'} -name 'chrome' -type f 2>/dev/null | head -3`, { stdio: ['pipe','pipe','ignore'] }).toString().trim();
+    checks['chrome binary found at'] = found || 'none';
+  } catch(e) { checks['cache search'] = 'error: ' + e.message; }
+  res.json({ env: { PUPPETEER_CACHE_DIR: process.env.PUPPETEER_CACHE_DIR, CHROMIUM_PATH: process.env.CHROMIUM_PATH }, checks });
 });
 
 // Serve React frontend in production
