@@ -21,23 +21,24 @@ function findChromium() {
   if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH))
     return process.env.CHROMIUM_PATH;
 
-  // 2. puppeteer's executablePath() — respects PUPPETEER_CACHE_DIR
+  // 2. puppeteer.executablePath() reads .puppeteerrc.cjs → backend/.chromium
   try {
     const p = executablePath();
-    if (p && fs.existsSync(p)) return p;
-    console.log('[Browser] puppeteer.executablePath() =>', p || 'empty');
+    if (p && fs.existsSync(p)) {
+      console.log('[Browser] Chrome found via puppeteer config:', p);
+      return p;
+    }
+    console.log('[Browser] executablePath() returned:', p, '(exists:', fs.existsSync(p||''), ')');
   } catch (e) {
     console.log('[Browser] executablePath() error:', e.message.split('\n')[0]);
   }
 
-  // 3. Search known candidate directories for a chrome binary
+  // 3. Broad search fallback
   const searchDirs = [
-    process.env.PUPPETEER_CACHE_DIR,
-    path.join(__dirname, '..', '.chromium'),      // /app/backend/.chromium
-    path.join(__dirname, '..', '..', '.chromium'), // /app/.chromium
+    path.join(__dirname, '..', '.chromium'),
+    path.join(__dirname, '..', '..', '.chromium'),
     '/root/.cache/puppeteer',
-    '/home/app/.cache/puppeteer',
-    '/tmp/.chromium',
+    process.env.PUPPETEER_CACHE_DIR,
   ].filter(Boolean);
 
   for (const dir of searchDirs) {
@@ -47,7 +48,7 @@ function findChromium() {
         { stdio: ['pipe','pipe','ignore'] }
       ).toString().trim();
       if (found && fs.existsSync(found)) {
-        console.log('[Browser] Found Chrome at:', found);
+        console.log('[Browser] Found Chrome by search:', found);
         return found;
       }
     } catch {}
