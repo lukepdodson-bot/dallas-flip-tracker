@@ -45,7 +45,10 @@ function wrap(sql) {
       const raw = args.length === 1 && typeof args[0] === 'object' && !Array.isArray(args[0])
         ? args[0] : (args.length ? args : null);
       const bound = bindParams(raw);
-      bound ? sqliteDb.run(sql, bound) : sqliteDb.run(sql);
+      const stmt = sqliteDb.prepare(sql);
+      bound ? stmt.bind(bound) : stmt.bind([]);
+      stmt.step();
+      stmt.free();
       const lastId  = sqliteDb.exec('SELECT last_insert_rowid()')[0]?.values[0][0] ?? null;
       const changes = sqliteDb.exec('SELECT changes()')[0]?.values[0][0] ?? 0;
       persist();
