@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet map fills its container */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Custom marker cluster styles */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(14, 165, 233, 0.2) !important;
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: rgba(14, 165, 233, 0.7) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+/* Sale type badge colors */
+.badge-foreclosure   { @apply bg-red-100 text-red-800; }
+.badge-reo           { @apply bg-orange-100 text-orange-800; }
+.badge-tax-sale      { @apply bg-purple-100 text-purple-800; }
+.badge-short-sale    { @apply bg-yellow-100 text-yellow-800; }
+.badge-hud           { @apply bg-blue-100 text-blue-800; }
+.badge-probate       { @apply bg-gray-100 text-gray-700; }
+
+/* Smooth scrollbar */
+* { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
