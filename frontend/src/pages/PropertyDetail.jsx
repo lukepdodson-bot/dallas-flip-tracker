@@ -250,22 +250,16 @@ export default function PropertyDetail() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
             <h2 className="font-semibold text-gray-900 mb-3">Quick Links</h2>
             <div className="space-y-2">
-              {(() => {
-                const m = property.address.match(/^(\d+)\s+(.+)$/);
-                const num = m ? m[1] : '';
-                const street = m ? m[2] : property.address;
-                const dcadUrl = `https://www.dcad.org/Account/Search?situs_num=${encodeURIComponent(num)}&situs_street=${encodeURIComponent(street.toUpperCase())}&situs_city=${encodeURIComponent(property.city.toUpperCase())}`;
-                return (
-                  <a
-                    href={dcadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 hover:underline"
-                  >
-                    → Dallas CAD Property Record
-                  </a>
-                );
-              })()}
+              {property.source_url && (
+                <a
+                  href={property.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 hover:underline"
+                >
+                  → Home Link
+                </a>
+              )}
               <a
                 href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${property.lat},${property.lng}`}
                 target="_blank"
@@ -274,16 +268,6 @@ export default function PropertyDetail() {
               >
                 → Google Street View
               </a>
-              {property.source_url && (
-                <a
-                  href={property.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-800 hover:underline"
-                >
-                  → Original Listing ({property.source})
-                </a>
-              )}
               <a
                 href={`https://www.zillow.com/homes/${encodeURIComponent(property.address + ', ' + property.city + ', TX')}`}
                 target="_blank"
