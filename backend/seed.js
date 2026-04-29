@@ -341,10 +341,10 @@ const insertProp = db.prepare(`
     property_type, sale_type, status, auction_date, list_date,
     source, source_id, description, case_number, trustee, lender, images
   ) VALUES (
-    @address, @city, 'TX', @zip_code, @county, @lat, @lng,
-    @price, @estimated_value, @bedrooms, @bathrooms, @sqft, @lot_size_sqft, @year_built,
-    @property_type, @sale_type, @status, @auction_date, @list_date,
-    @source, @source_id, @description, @case_number, @trustee, @lender, '[]'
+    :address, :city, 'TX', :zip_code, :county, :lat, :lng,
+    :price, :estimated_value, :bedrooms, :bathrooms, :sqft, :lot_size_sqft, :year_built,
+    :property_type, :sale_type, :status, :auction_date, :list_date,
+    :source, :source_id, :description, :case_number, :trustee, :lender, '[]'
   )
   ON CONFLICT(source, source_id) DO UPDATE SET
     price=excluded.price,
