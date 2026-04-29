@@ -19,7 +19,8 @@
     "express-rate-limit": "^7.1.5",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
-    "puppeteer-core": "^22.0.0"
+    "puppeteer-core": "^22.0.0",
+    "sql.js": "^1.14.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

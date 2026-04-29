@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
-const db = require('./db/database');
+const { initDB } = require('./db/database');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -66,21 +66,29 @@ if (process.env.NODE_ENV === 'production') {
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Daily scrape at 6 AM Central Time (12:00 UTC)
-cron.schedule('0 12 * * *', async () => {
-  console.log('[Cron] Running daily scrape...');
-  try {
-    const { runAllScrapers } = require('./scrapers/index');
-    await runAllScrapers();
-  } catch (e) {
-    console.error('[Cron] Scrape error:', e.message);
-  }
-}, {
-  timezone: 'America/Chicago',
-});
+// Boot: init DB first, then start listening
+(async () => {
+  console.log('Initialising database...');
+  await initDB();
+  console.log('Database ready.');
 
-app.listen(PORT, () => {
-  console.log(`\nDallas Foreclosure Tracker backend running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Daily scrape scheduled: 6:00 AM Central\n`);
-});
+  // Seed on first run (idempotent)
+  try { require('./seed'); } catch (e) { console.error('Seed error:', e.message); }
+
+  // Daily scrape at 6 AM Central
+  cron.schedule('0 12 * * *', async () => {
+    console.log('[Cron] Running daily scrape...');
+    try {
+      const { runAllScrapers } = require('./scrapers/index');
+      await runAllScrapers();
+    } catch (e) {
+      console.error('[Cron] Scrape error:', e.message);
+    }
+  }, { timezone: 'America/Chicago' });
+
+  app.listen(PORT, () => {
+    console.log(`\nDallas Foreclosure Tracker running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Daily scrape: 6:00 AM Central\n`);
+  });
+})();
