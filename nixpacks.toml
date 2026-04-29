@@ -1,6 +1,3 @@
-[phases.setup]
-nixPkgs = ["chromium"]
-
 [phases.install]
 cmds = [
   "cd backend && npm install --production=false",
@@ -9,8 +6,9 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "cd frontend && node node_modules/vite/bin/vite.js build"
+  "cd frontend && node node_modules/vite/bin/vite.js build",
+  "cd backend && PUPPETEER_CACHE_DIR=/app/backend/.chromium npx puppeteer browsers install chrome"
 ]
 
 [start]
-cmd = "node backend/server.js"
+cmd = "PUPPETEER_CACHE_DIR=/app/backend/.chromium node backend/server.js"

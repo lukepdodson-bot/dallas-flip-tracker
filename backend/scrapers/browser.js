@@ -1,32 +1,27 @@
 /**
  * Shared Chromium launcher with puppeteer-extra stealth plugin.
- * Finds the system Chromium binary (installed via nixpacks) and launches
- * a browser that looks like a real desktop Chrome to bypass bot detection.
+ *
+ * Chrome is downloaded during the nixpacks BUILD phase via:
+ *   PUPPETEER_CACHE_DIR=/app/backend/.chromium npx puppeteer browsers install chrome
+ *
+ * At runtime the same env var points puppeteer.executablePath() at the cached binary.
  */
 const puppeteer  = require('puppeteer-extra');
 const Stealth    = require('puppeteer-extra-plugin-stealth');
-const { execSync } = require('child_process');
+const { executablePath } = require('puppeteer');
 
 puppeteer.use(Stealth());
 
 function findChromium() {
-  // Prefer an explicit env override (set CHROMIUM_PATH on Railway if needed)
+  // Explicit override (e.g. CHROMIUM_PATH env var on Railway)
   if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
 
-  const cmds = [
-    'which chromium',
-    'which chromium-browser',
-    'which google-chrome',
-    'which google-chrome-stable',
-  ];
-  for (const cmd of cmds) {
-    try {
-      const p = execSync(cmd, { stdio: ['pipe','pipe','ignore'] }).toString().trim();
-      if (p) return p;
-    } catch {}
-  }
-  // Nix store fallback glob — chromium leaves a wrapper in PATH but the real binary
-  // is deep in /nix/store. The wrapper is all we need.
+  // puppeteer's own executablePath() respects PUPPETEER_CACHE_DIR
+  try {
+    const p = executablePath();
+    if (p) return p;
+  } catch {}
+
   return null;
 }
 
