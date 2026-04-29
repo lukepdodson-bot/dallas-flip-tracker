@@ -58,6 +58,19 @@ app.post('/api/scrape/run', require('./routes/auth').requireAuth, async (req, re
 // Health check (must be before the frontend catch-all)
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
+// Diagnostic: check Chromium availability (admin only)
+app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, res) => {
+  const { execSync } = require('child_process');
+  const checks = {};
+  for (const cmd of ['which chromium','which chromium-browser','which google-chrome','ls /run/current-system/sw/bin/chromium']) {
+    try { checks[cmd] = execSync(cmd, { stdio: ['pipe','pipe','ignore'] }).toString().trim(); }
+    catch { checks[cmd] = 'not found'; }
+  }
+  try { checks['chromium --version'] = execSync('chromium --version', { stdio: ['pipe','pipe','ignore'] }).toString().trim(); }
+  catch { checks['chromium --version'] = 'error'; }
+  res.json({ env: { CHROMIUM_PATH: process.env.CHROMIUM_PATH }, checks });
+});
+
 // Serve React frontend in production
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
