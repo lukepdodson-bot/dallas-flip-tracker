@@ -7,8 +7,8 @@ cmds = [
 [phases.build]
 cmds = [
   "cd frontend && node node_modules/vite/bin/vite.js build",
-  "cd backend && PUPPETEER_CACHE_DIR=/app/backend/.chromium npx puppeteer browsers install chrome"
+  "echo 'BUILD PWD:' $(pwd) && echo 'BACKEND PATH:' $(pwd)/backend && cd backend && echo 'IN BACKEND:' $(pwd) && PUPPETEER_CACHE_DIR=$(pwd)/.chromium npx puppeteer browsers install chrome && echo 'Chrome installed to' $(pwd)/.chromium && ls $(pwd)/.chromium"
 ]
 
 [start]
-cmd = "PUPPETEER_CACHE_DIR=/app/backend/.chromium node backend/server.js"
+cmd = "node backend/server.js"

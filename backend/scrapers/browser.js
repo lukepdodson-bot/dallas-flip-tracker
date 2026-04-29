@@ -13,14 +13,45 @@ const { executablePath } = require('puppeteer');
 puppeteer.use(Stealth());
 
 function findChromium() {
-  // Explicit override (e.g. CHROMIUM_PATH env var on Railway)
-  if (process.env.CHROMIUM_PATH) return process.env.CHROMIUM_PATH;
+  const { execSync } = require('child_process');
+  const path = require('path');
+  const fs   = require('fs');
 
-  // puppeteer's own executablePath() respects PUPPETEER_CACHE_DIR
+  // 1. Explicit env override
+  if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH))
+    return process.env.CHROMIUM_PATH;
+
+  // 2. puppeteer's executablePath() — respects PUPPETEER_CACHE_DIR
   try {
     const p = executablePath();
-    if (p) return p;
-  } catch {}
+    if (p && fs.existsSync(p)) return p;
+    console.log('[Browser] puppeteer.executablePath() =>', p || 'empty');
+  } catch (e) {
+    console.log('[Browser] executablePath() error:', e.message.split('\n')[0]);
+  }
+
+  // 3. Search known candidate directories for a chrome binary
+  const searchDirs = [
+    process.env.PUPPETEER_CACHE_DIR,
+    path.join(__dirname, '..', '.chromium'),      // /app/backend/.chromium
+    path.join(__dirname, '..', '..', '.chromium'), // /app/.chromium
+    '/root/.cache/puppeteer',
+    '/home/app/.cache/puppeteer',
+    '/tmp/.chromium',
+  ].filter(Boolean);
+
+  for (const dir of searchDirs) {
+    try {
+      const found = execSync(
+        `find "${dir}" -name 'chrome' -type f 2>/dev/null | head -1`,
+        { stdio: ['pipe','pipe','ignore'] }
+      ).toString().trim();
+      if (found && fs.existsSync(found)) {
+        console.log('[Browser] Found Chrome at:', found);
+        return found;
+      }
+    } catch {}
+  }
 
   return null;
 }
