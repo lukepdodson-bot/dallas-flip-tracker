@@ -5,9 +5,18 @@ const db = require('./db/database');
 console.log('Seeding database...');
 
 // --- Users ---
+// Rename legacy 'buddy' account to 'john' if it exists
+try {
+  const buddyExists = db.prepare(`SELECT id FROM users WHERE username = 'buddy'`).get();
+  if (buddyExists) {
+    db.prepare(`UPDATE users SET username = 'john', email = 'john@example.com' WHERE username = 'buddy'`).run();
+    console.log('Renamed user "buddy" → "john"');
+  }
+} catch (e) { /* ignore */ }
+
 const users = [
   { username: 'luke', email: 'luke@example.com', password: 'FlipDallas2024!', role: 'admin' },
-  { username: 'buddy', email: 'buddy@example.com', password: 'FlipDallas2024!', role: 'user' },
+  { username: 'john', email: 'john@example.com', password: 'FlipDallas2024!', role: 'user' },
 ];
 
 for (const u of users) {
@@ -361,5 +370,5 @@ for (const p of properties) {
 console.log(`Seeded ${added} properties.`);
 console.log('\nDefault credentials (CHANGE THESE):');
 console.log('  luke / FlipDallas2024!');
-console.log('  buddy / FlipDallas2024!');
+console.log('  john / FlipDallas2024!');
 console.log('\nChange passwords via: node changePassword.js <username> <newpassword>');
