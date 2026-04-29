@@ -1,103 +1,126 @@
 /**
- * HUD Homes Scraper
- * Scrapes hudhomestore.gov for Dallas County REO properties.
- * HUD offers homes owned by the government after FHA-insured mortgage defaults.
+ * HUD HomeStore Scraper — Dallas County, TX
+ *
+ * HUD sells foreclosed homes originally financed with FHA-insured loans.
+ * Site is behind Incapsula; we use puppeteer-extra with the stealth plugin
+ * to pass the bot challenge and hit their ASP.NET search page.
  */
-const axios = require('axios');
 const cheerio = require('cheerio');
+const { launchBrowser, newPage } = require('./browser');
 
-const DALLAS_ZIPS = [
-  '75201','75202','75203','75204','75205','75206','75207','75208','75209','75210',
-  '75211','75212','75214','75215','75216','75217','75218','75219','75220','75223',
-  '75224','75225','75226','75227','75228','75229','75230','75231','75232','75233',
-  '75234','75235','75236','75237','75238','75240','75241','75243','75244','75246',
-  '75249','75287','75051','75052','75060','75061','75062','75063','75115','75116',
-  '75134','75146','75149','75150','75040','75041','75042','75043','75044','75088',
-  '75089','75180','75181','75182','75087'
-];
+const SEARCH_URL =
+  'https://www.hudhomestore.gov/Listing/PropertySearchResult.aspx' +
+  '?zipCode=&city=&state=TX&county=DALLAS&propertyType=&listing=' +
+  '&bedroom=&bathroom=&garage=&fireplaceFlg=&basementFlg=&acFlg=' +
+  '&searchType=searchByCounty&pageNumber=1&pageSize=100' +
+  '&sortField=listdate&sortOrder=DESC';
 
 async function scrapeHUDHomes() {
   const results = [];
+  let browser;
 
   try {
-    // HUD Home Store search API
-    const searchUrl = 'https://www.hudhomestore.gov/Listing/PropertySearchResult.aspx';
+    browser = await launchBrowser();
+    const page = await newPage(browser);
 
-    const params = new URLSearchParams({
-      zipCode: '',
-      city: 'Dallas',
-      state: 'TX',
-      county: 'DALLAS',
-      propertyType: '',
-      listing: '',
-      bedroom: '',
-      bathroom: '',
-      garage: '',
-      fireplaceFlg: '',
-      basementFlg: '',
-      acFlg: '',
-      searchType: 'searchByCity',
-      pageNumber: '1',
-      pageSize: '50',
-      sortField: 'listdate',
-      sortOrder: 'DESC',
-    });
+    console.log('[HUD] Navigating to HUD HomeStore…');
+    await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60000 });
+    await page.humanDelay();
 
-    const response = await axios.get(`${searchUrl}?${params}`, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml',
-      },
-      timeout: 15000,
-    });
+    // If Incapsula is still showing a challenge page, wait a bit more
+    const title = await page.title();
+    console.log(`[HUD] Page title: ${title}`);
+    if (title.toLowerCase().includes('error') || title === '') {
+      await page.waitForTimeout(5000);
+      await page.reload({ waitUntil: 'networkidle2' });
+    }
 
-    const $ = cheerio.load(response.data);
+    const html = await page.content();
+    const $   = cheerio.load(html);
 
-    // Parse HUD listing table
-    $('table.table tr').each((i, row) => {
-      if (i === 0) return; // skip header
+    // HUD results are in a table — try both possible table selectors
+    const rows = $('table#dgSearchResult tr, table.table tr, .listing-row');
+    console.log(`[HUD] Found ${rows.length} table rows`);
+
+    rows.each((i, row) => {
+      if (i === 0) return; // header
       const cells = $(row).find('td');
-      if (cells.length < 5) return;
+      if (cells.length < 4) return;
 
-      const address = $(cells[0]).text().trim();
-      const city = $(cells[1]).text().trim();
-      const zip = $(cells[2]).text().trim();
-      const price = parseFloat($(cells[3]).text().replace(/[^0-9.]/g, '')) || null;
-      const beds = parseInt($(cells[4]).text()) || null;
-      const baths = parseFloat($(cells[5]).text()) || null;
-      const listDate = $(cells[6]).text().trim();
-      const caseNum = $(cells[7]).text().trim();
-      const url = $(cells[0]).find('a').attr('href');
+      const linkEl   = $(cells[0]).find('a');
+      const address  = linkEl.text().trim() || $(cells[0]).text().trim();
+      const city     = $(cells[1]).text().trim();
+      const state    = $(cells[2]).text().trim();
+      const zip      = $(cells[3]).text().trim();
+      const price    = parseFloat($(cells[4]).text().replace(/[^0-9.]/g, '')) || null;
+      const beds     = parseInt($(cells[5]).text()) || null;
+      const baths    = parseFloat($(cells[6]).text()) || null;
+      const listDate = $(cells[7]).text().trim();
+      const caseNum  = $(cells[8]).text().trim() || $(cells[9]).text().trim();
+      const href     = linkEl.attr('href');
 
-      if (address && DALLAS_ZIPS.includes(zip)) {
-        results.push({
-          address,
-          city: city || 'Dallas',
-          zip_code: zip,
-          county: 'Dallas',
-          price,
-          bedrooms: beds,
-          bathrooms: baths,
-          list_date: listDate ? new Date(listDate).toISOString().split('T')[0] : null,
-          property_type: 'SFR',
-          sale_type: 'REO',
-          status: 'Active',
-          source: 'HUD Homes',
-          source_id: caseNum || `HUD-${address.replace(/\s+/g, '-')}`,
-          source_url: url ? `https://www.hudhomestore.gov${url}` : null,
-          case_number: caseNum,
-          description: 'HUD Home - sold as-is. Contact listing broker for showing instructions.',
-        });
-      }
+      if (!address || address.length < 5) return;
+      if (state && state.toUpperCase() !== 'TX') return;
+
+      const sourceId = caseNum || `HUD-TX-${address.replace(/\W+/g, '-')}`;
+      results.push({
+        address:    address.replace(/,\s*(TX|Texas).*/i, '').trim(),
+        city:       city || 'Dallas',
+        zip_code:   zip   || null,
+        county:     'Dallas',
+        price,
+        bedrooms:   beds,
+        bathrooms:  baths,
+        list_date:  listDate ? fmtDate(listDate) : null,
+        property_type: 'SFR',
+        sale_type:  'REO',
+        status:     'Active',
+        source:     'HUD Homes',
+        source_id:  sourceId,
+        source_url: href
+          ? (href.startsWith('http') ? href : `https://www.hudhomestore.gov${href}`)
+          : null,
+        case_number: caseNum || null,
+        description:
+          'HUD Home — sold as-is. Contact listing broker for showing instructions. ' +
+          'FHA financing may be available with escrow repair addendum.',
+      });
     });
 
-    console.log(`[HUD Homes] Found ${results.length} Dallas County properties`);
+    // Try alternate card layout if table had no rows
+    if (results.length === 0) {
+      $('[class*="property-card"], [class*="listing-card"], [class*="PropertyCard"]').each((_, card) => {
+        const address = $(card).find('[class*="address"], [class*="Address"]').first().text().trim();
+        const price   = parseFloat($(card).find('[class*="price"], [class*="Price"]').first().text().replace(/[^0-9.]/g, '')) || null;
+        const href    = $(card).find('a').first().attr('href');
+        if (!address) return;
+        results.push({
+          address, city: 'Dallas', county: 'Dallas',
+          price, property_type: 'SFR', sale_type: 'REO', status: 'Active',
+          source: 'HUD Homes',
+          source_id: `HUD-TX-${address.replace(/\W+/g, '-')}`,
+          source_url: href ? `https://www.hudhomestore.gov${href}` : null,
+          description: 'HUD Home — sold as-is.',
+        });
+      });
+    }
+
+    console.log(`[HUD] Returning ${results.length} properties`);
   } catch (err) {
-    console.error('[HUD Homes] Scrape error:', err.message);
-    // Return empty - app continues with existing data
+    console.error('[HUD] Scrape error:', err.message);
+  } finally {
+    if (browser) await browser.close().catch(() => {});
   }
 
   return results;
+}
+
+function fmtDate(str) {
+  try {
+    const d = new Date(str);
+    if (!isNaN(d)) return d.toISOString().split('T')[0];
+  } catch {}
+  return null;
 }
 
 module.exports = { scrapeHUDHomes };

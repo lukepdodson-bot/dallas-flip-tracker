@@ -1,3 +1,6 @@
+[phases.setup]
+nixPkgs = ["chromium", "nss", "nspr", "atk", "cups", "dbus", "expat", "libdrm", "libxkbcommon", "mesa"]
+
 [phases.install]
 cmds = [
   "cd backend && npm install --production=false",
@@ -10,4 +13,4 @@ cmds = [
 ]
 
 [start]
-cmd = "node backend/seed.js && node backend/server.js"
+cmd = "node backend/server.js"

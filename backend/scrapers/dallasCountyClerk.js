@@ -1,116 +1,187 @@
 /**
- * Dallas County Clerk - Notice of Trustee Sale Scraper
+ * Dallas County Foreclosure Scraper
  *
- * In Texas, foreclosures are non-judicial. Lenders post a "Notice of Trustee Sale"
- * with the county clerk at least 21 days before the auction. Auctions happen on the
- * first Tuesday of each month at the Dallas County courthouse (600 Commerce St).
+ * Sources two types of Dallas County distressed properties:
  *
- * This scraper targets the Dallas County Clerk's public foreclosure notice records.
- * URL: https://www.dallascounty.org/departments/dallascad/
+ * 1. Bid4Assets — Dallas County holds its annual tax deed sales here.
+ *    URL: https://www.bid4assets.com/txdallas
  *
- * NOTE: Dallas County Clerk uses a document management system. Foreclosure notices
- * (Notice of Trustee Sale) are indexed under instrument type "NTS" in their records.
- * The scraper uses their public records search portal.
+ * 2. BDFTE (Barrett Daffin Frappier Turner & Engel) — one of the largest
+ *    Texas foreclosure trustees; they publish upcoming first-Tuesday auction
+ *    lists on their portal for each Texas county.
+ *    URL: https://www.logs.com/ (Texas Foreclosure Monthly Sale lists)
+ *
+ * Both are rendered in the browser so we use puppeteer stealth.
  */
-const axios = require('axios');
 const cheerio = require('cheerio');
-const puppeteer = require('puppeteer-core');
+const { launchBrowser, newPage } = require('./browser');
 
-// Next first Tuesdays of the month
-function getNextFirstTuesdays(count = 6) {
-  const results = [];
+// Next first Tuesdays (Texas foreclosure auction days)
+function nextFirstTuesdays(count = 4) {
+  const out = [];
   const now = new Date();
-  let month = now.getMonth();
-  let year = now.getFullYear();
-
-  for (let i = 0; i < count + 2; i++) {
-    const d = new Date(year, month, 1);
-    // Find first Tuesday
+  let [yr, mo] = [now.getFullYear(), now.getMonth()];
+  while (out.length < count + 2) {
+    const d = new Date(yr, mo, 1);
     while (d.getDay() !== 2) d.setDate(d.getDate() + 1);
-    if (d > now) results.push(d.toISOString().split('T')[0]);
-    if (results.length >= count) break;
-    month++;
-    if (month > 11) { month = 0; year++; }
+    if (d > now) out.push(d.toISOString().split('T')[0]);
+    if (++mo > 11) { mo = 0; yr++; }
+    if (out.length >= count) break;
   }
-  return results;
+  return out;
 }
 
 async function scrapeDallasCountyForeclosures() {
   const results = [];
+  const upcomingTuesday = nextFirstTuesdays(1)[0];
+  let browser;
 
   try {
-    // Dallas County Clerk public records search
-    // Instrument type: NTS (Notice of Trustee Sale)
-    // This endpoint may require adaptation based on the clerk's current portal
-    const baseUrl = 'https://www.dallascounty.org/departments/clerk/';
+    browser = await launchBrowser();
 
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-    });
-
+    // ── Source 1: Bid4Assets Dallas County Tax Sales ──────────────────────────
     try {
-      const page = await browser.newPage();
-      await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36');
-
-      // Navigate to foreclosure search - adjust URL based on current clerk portal
-      await page.goto('https://www.dallascounty.org/departments/clerk/foreclosures/', {
+      const page = await newPage(browser);
+      console.log('[Bid4Assets] Navigating…');
+      await page.goto('https://www.bid4assets.com/txdallas', {
         waitUntil: 'networkidle2',
-        timeout: 20000,
+        timeout: 60000,
       });
+      await page.humanDelay();
 
+      // Try to intercept any JSON data response
       const html = await page.content();
-      const $ = cheerio.load(html);
+      const $    = cheerio.load(html);
 
-      // Parse table rows - structure varies by clerk portal version
-      $('table tr, .foreclosure-listing').each((i, el) => {
-        const cols = $(el).find('td');
-        if (cols.length < 3) return;
+      const cards = $('[class*="auction-item"], [class*="property-item"], [class*="listing"], .auc-item, .property-card, article');
+      console.log(`[Bid4Assets] Found ${cards.length} cards`);
 
-        const caseNum = $(cols[0]).text().trim();
-        const address = $(cols[1]).text().trim();
-        const trustor = $(cols[2]).text().trim();
-        const trustee = $(cols[3])?.text().trim();
-        const saleDate = $(cols[4])?.text().trim();
-        const amount = parseFloat($(cols[5])?.text().replace(/[^0-9.]/g, '')) || null;
+      cards.each((_, card) => {
+        const text     = $(card).text();
+        const address  = $(card).find('[class*="address" i], [class*="street" i], h2, h3').first().text().trim();
+        const priceEl  = $(card).find('[class*="price" i], [class*="bid" i], [class*="amount" i]').first().text();
+        const price    = parseFloat(priceEl.replace(/[^0-9.]/g, '')) || null;
+        const href     = $(card).find('a').first().attr('href');
+        const dateEl   = $(card).find('[class*="date" i], [class*="end" i]').first().text();
+        const auctionDate = fmtDate(dateEl) || upcomingTuesday;
 
-        if (address && address.length > 5) {
-          // Extract zip from address if present
-          const zipMatch = address.match(/\b(75\d{3})\b/);
-          results.push({
-            address: address.replace(/,?\s*(Dallas|TX|75\d{3}).*/i, '').trim(),
-            city: 'Dallas',
-            zip_code: zipMatch ? zipMatch[1] : null,
-            county: 'Dallas',
-            price: amount,
-            property_type: 'SFR',
-            sale_type: 'Foreclosure',
-            status: 'Active',
-            auction_date: saleDate ? parseDate(saleDate) : getNextFirstTuesdays(1)[0],
-            list_date: new Date().toISOString().split('T')[0],
-            source: 'Dallas County Clerk',
-            source_id: caseNum || `DC-${Date.now()}-${i}`,
-            case_number: caseNum,
-            trustee,
-            description: `Foreclosure - Trustor: ${trustor}. Auction at Dallas County Courthouse, 600 Commerce St, Dallas TX. Cash only at auction.`,
-          });
-        }
+        if (!address || address.length < 5) return;
+
+        results.push({
+          address:      address.replace(/,?\s*(TX|Texas).*/i, '').trim(),
+          city:         extractCity(text) || 'Dallas',
+          county:       'Dallas',
+          price,
+          property_type: 'SFR',
+          sale_type:    'Tax Sale',
+          status:       'Active',
+          auction_date: auctionDate,
+          list_date:    new Date().toISOString().split('T')[0],
+          source:       'Dallas County Tax Sale',
+          source_id:    `BID4-${address.replace(/\W+/g, '-')}`,
+          source_url:   href
+            ? (href.startsWith('http') ? href : `https://www.bid4assets.com${href}`)
+            : 'https://www.bid4assets.com/txdallas',
+          description:
+            'Dallas County tax deed sale via Bid4Assets. ' +
+            'Buyer responsible for any remaining liens. Online bidding.',
+        });
       });
-
-    } finally {
-      await browser.close();
+      await page.close();
+    } catch (e) {
+      console.error('[Bid4Assets] Error:', e.message);
     }
 
-    console.log(`[Dallas County Clerk] Found ${results.length} foreclosure notices`);
+    // ── Source 2: logs.com — Texas Trustee Sale Monthly Lists (BDFTE) ────────
+    try {
+      const page = await newPage(browser);
+      console.log('[LOGS.com] Navigating to Texas foreclosure list…');
+
+      // logs.com is the Trustee Sale publication portal for major TX foreclosure trustees
+      await page.goto('https://www.logs.com/texas/dallas/', {
+        waitUntil: 'networkidle2',
+        timeout: 60000,
+      });
+      await page.humanDelay();
+
+      const html = await page.content();
+      const $    = cheerio.load(html);
+
+      // The page lists properties with case numbers, addresses, trustee info
+      const rows = $('table tr, .foreclosure-item, [class*="notice"], li[class*="item"]');
+      console.log(`[LOGS.com] Found ${rows.length} rows`);
+
+      rows.each((i, row) => {
+        if (i === 0) return;
+        const cells   = $(row).find('td');
+        const text    = $(row).text();
+        if (text.length < 10) return;
+
+        let address, caseNum, trustee, saleDate;
+
+        if (cells.length >= 3) {
+          caseNum  = $(cells[0]).text().trim();
+          address  = $(cells[1]).text().trim();
+          trustee  = $(cells[2]).text().trim();
+          saleDate = $(cells[3])?.text().trim();
+        } else {
+          address = $(row).find('[class*="address" i]').text().trim() || text.trim();
+        }
+
+        if (!address || address.length < 5) return;
+        if (!text.toLowerCase().includes('dallas')) return;
+
+        const href = $(row).find('a').first().attr('href');
+        results.push({
+          address:      address.replace(/,?\s*(TX|Dallas|75\d{3}).*/i, '').trim(),
+          city:         extractCity(text) || 'Dallas',
+          county:       'Dallas',
+          property_type: 'SFR',
+          sale_type:    'Foreclosure',
+          status:       'Active',
+          auction_date: fmtDate(saleDate) || upcomingTuesday,
+          list_date:    new Date().toISOString().split('T')[0],
+          source:       'Dallas County Clerk',
+          source_id:    caseNum || `LOGS-${address.replace(/\W+/g, '-')}`,
+          source_url:   href
+            ? (href.startsWith('http') ? href : `https://www.logs.com${href}`)
+            : 'https://www.logs.com/texas/dallas/',
+          case_number:  caseNum || null,
+          trustee:      trustee || null,
+          description:
+            `Notice of Trustee Sale — Dallas County. ` +
+            `Auction at Dallas County Courthouse, 600 Commerce St. Cash only.`,
+        });
+      });
+      await page.close();
+    } catch (e) {
+      console.error('[LOGS.com] Error:', e.message);
+    }
+
+    console.log(`[Dallas County] Total: ${results.length} properties`);
   } catch (err) {
-    console.error('[Dallas County Clerk] Scrape error:', err.message);
-    // Non-fatal - return what we have
+    console.error('[Dallas County] Fatal error:', err.message);
+  } finally {
+    if (browser) await browser.close().catch(() => {});
   }
 
   return results;
 }
 
-function parseDate(str) {
+function extractCity(text) {
+  const cities = [
+    'Dallas','Irving','Garland','Mesquite','DeSoto','Lancaster','Rowlett',
+    'Grand Prairie','Duncanville','Balch Springs','Hutchins','Wilmer',
+    'Seagoville','Sunnyvale','Sachse','Farmers Branch','Richardson','Carrollton',
+  ];
+  for (const c of cities) {
+    if (text.includes(c)) return c;
+  }
+  return null;
+}
+
+function fmtDate(str) {
+  if (!str) return null;
   try {
     const d = new Date(str);
     if (!isNaN(d)) return d.toISOString().split('T')[0];
@@ -118,4 +189,4 @@ function parseDate(str) {
   return null;
 }
 
-module.exports = { scrapeDallasCountyForeclosures, getNextFirstTuesdays };
+module.exports = { scrapeDallasCountyForeclosures, nextFirstTuesdays };
