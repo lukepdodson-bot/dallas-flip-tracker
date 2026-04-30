@@ -1,10 +1,8 @@
 /**
  * Shared Chromium launcher with puppeteer-extra stealth plugin.
  *
- * Chrome is downloaded during the nixpacks BUILD phase via:
- *   PUPPETEER_CACHE_DIR=/app/backend/.chromium npx puppeteer browsers install chrome
- *
- * At runtime the same env var points puppeteer.executablePath() at the cached binary.
+ * Chromium is provided via nixPkgs in nixpacks.toml.
+ * CHROMIUM_PATH env var can override the auto-detected path.
  */
 const puppeteer  = require('puppeteer-extra');
 const Stealth    = require('puppeteer-extra-plugin-stealth');
@@ -18,14 +16,42 @@ function findChromium() {
   const fs   = require('fs');
 
   // 1. Explicit env override
-  if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH))
+  if (process.env.CHROMIUM_PATH && fs.existsSync(process.env.CHROMIUM_PATH)) {
+    console.log('[Browser] Using CHROMIUM_PATH env:', process.env.CHROMIUM_PATH);
     return process.env.CHROMIUM_PATH;
+  }
 
-  // 2. puppeteer.executablePath() reads .puppeteerrc.cjs → backend/.chromium
+  // 2. nixpkgs system chromium (most reliable on Railway)
+  for (const cmd of ['which chromium', 'which chromium-browser', 'which google-chrome-stable', 'which google-chrome']) {
+    try {
+      const p = execSync(cmd, { stdio: ['pipe','pipe','ignore'] }).toString().trim();
+      if (p && fs.existsSync(p)) {
+        console.log('[Browser] Found system chromium at:', p);
+        return p;
+      }
+    } catch {}
+  }
+
+  // 3. Common nixpkgs Nix store paths for chromium
+  try {
+    const nixFind = execSync(
+      'find /nix/store -maxdepth 3 -name "chromium" -type f 2>/dev/null | head -3',
+      { stdio: ['pipe','pipe','ignore'] }
+    ).toString().trim();
+    if (nixFind) {
+      const first = nixFind.split('\n')[0];
+      if (first && fs.existsSync(first)) {
+        console.log('[Browser] Found chromium in /nix/store:', first);
+        return first;
+      }
+    }
+  } catch {}
+
+  // 4. puppeteer.executablePath() — downloaded Chrome (may have glibc compat issues)
   try {
     const p = executablePath();
     if (p && fs.existsSync(p)) {
-      console.log('[Browser] Chrome found via puppeteer config:', p);
+      console.log('[Browser] Using puppeteer executablePath:', p);
       return p;
     }
     console.log('[Browser] executablePath() returned:', p, '(exists:', fs.existsSync(p||''), ')');
@@ -33,7 +59,7 @@ function findChromium() {
     console.log('[Browser] executablePath() error:', e.message.split('\n')[0]);
   }
 
-  // 3. Broad search fallback
+  // 5. Broad search in common locations
   const searchDirs = [
     path.join(__dirname, '..', '.chromium'),
     path.join(__dirname, '..', '..', '.chromium'),
@@ -48,7 +74,7 @@ function findChromium() {
         { stdio: ['pipe','pipe','ignore'] }
       ).toString().trim();
       if (found && fs.existsSync(found)) {
-        console.log('[Browser] Found Chrome by search:', found);
+        console.log('[Browser] Found Chrome by search in', dir, ':', found);
         return found;
       }
     } catch {}
@@ -76,15 +102,15 @@ const LAUNCH_ARGS = [
 ];
 
 async function launchBrowser() {
-  const executablePath = findChromium();
-  if (!executablePath) {
+  const execPath = findChromium();
+  if (!execPath) {
     throw new Error(
-      'Chromium not found. Add CHROMIUM_PATH env var or ensure nixpacks installs chromium.'
+      'Chromium not found. Add CHROMIUM_PATH env var or ensure nixpacks.toml has nixPkgs = ["chromium"].'
     );
   }
-  console.log(`[Browser] Using Chromium at: ${executablePath}`);
+  console.log(`[Browser] Launching Chromium at: ${execPath}`);
   return puppeteer.launch({
-    executablePath,
+    executablePath: execPath,
     headless: 'new',
     args: LAUNCH_ARGS,
     timeout: 60000,

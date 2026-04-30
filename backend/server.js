@@ -88,26 +88,31 @@ app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, re
   const fs = require('fs');
   const checks = {};
   // System chrome checks
-  for (const cmd of ['which chromium','which chromium-browser','which google-chrome']) {
+  for (const cmd of ['which chromium','which chromium-browser','which google-chrome-stable','which google-chrome']) {
     try { checks[cmd] = execSync(cmd, { stdio: ['pipe','pipe','ignore'] }).toString().trim(); }
     catch { checks[cmd] = 'not found'; }
   }
+  // Nix store search
+  try {
+    const nixFind = execSync('find /nix/store -maxdepth 3 -name "chromium" -type f 2>/dev/null | head -3', { stdio: ['pipe','pipe','ignore'] }).toString().trim();
+    checks['nix store chromium'] = nixFind || 'none';
+  } catch(e) { checks['nix store chromium'] = 'error: ' + e.message; }
   // Puppeteer executable path
   try {
     const { executablePath } = require('puppeteer');
     const p = executablePath();
     checks['puppeteer.executablePath()'] = p;
     checks['puppeteer binary exists'] = fs.existsSync(p) ? 'YES' : 'NO';
+    if (fs.existsSync(p)) {
+      try { checks['file type'] = execSync(`file "${p}" 2>/dev/null`, { stdio: ['pipe','pipe','ignore'] }).toString().trim().split(': ')[1] || 'unknown'; } catch {}
+      try { checks['ldd missing libs'] = execSync(`ldd "${p}" 2>/dev/null | grep 'not found' | head -5`, { stdio: ['pipe','pipe','ignore'] }).toString().trim() || 'none (all libs found)'; } catch {}
+    }
   } catch(e) { checks['puppeteer.executablePath()'] = 'error: ' + e.message; }
   // Cache dir contents
   try {
-    const cacheDir = process.env.PUPPETEER_CACHE_DIR || '';
-    checks['PUPPETEER_CACHE_DIR'] = cacheDir;
-    if (cacheDir) checks['cache dir exists'] = fs.existsSync(cacheDir) ? 'YES' : 'NO';
-    // find chrome binary recursively
-    const found = execSync(`find ${cacheDir || '/app/backend/.chromium'} -name 'chrome' -type f 2>/dev/null | head -3`, { stdio: ['pipe','pipe','ignore'] }).toString().trim();
-    checks['chrome binary found at'] = found || 'none';
-  } catch(e) { checks['cache search'] = 'error: ' + e.message; }
+    const found = execSync(`find /root/.cache/puppeteer -name 'chrome' -type f 2>/dev/null | head -3`, { stdio: ['pipe','pipe','ignore'] }).toString().trim();
+    checks['puppeteer cache chrome'] = found || 'none';
+  } catch(e) { checks['puppeteer cache search'] = 'error: ' + e.message; }
   res.json({ env: { PUPPETEER_CACHE_DIR: process.env.PUPPETEER_CACHE_DIR, CHROMIUM_PATH: process.env.CHROMIUM_PATH }, checks });
 });
 
