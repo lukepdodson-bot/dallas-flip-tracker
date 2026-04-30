@@ -107,7 +107,14 @@ app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, re
       try { checks['file type'] = execSync(`file "${p}" 2>/dev/null`, { stdio: ['pipe','pipe','ignore'] }).toString().trim().split(': ')[1] || 'unknown'; } catch {}
       try { checks['ldd missing libs'] = execSync(`ldd "${p}" 2>/dev/null | grep 'not found' | head -5`, { stdio: ['pipe','pipe','ignore'] }).toString().trim() || 'none (all libs found)'; } catch {}
       try { const stat = fs.statSync(p); checks['file permissions'] = '0' + (stat.mode & 0o777).toString(8); checks['is executable'] = !!(stat.mode & 0o111); } catch {}
-      try { checks['run --version'] = execSync(`"${p}" --version 2>&1`, { timeout: 5000 }).toString().trim().substring(0, 200); } catch(e) { checks['run --version error'] = e.message.substring(0, 300); }
+      try {
+        const { spawnSync } = require('child_process');
+        const r = spawnSync(p, ['--version', '--no-sandbox', '--disable-setuid-sandbox'], { timeout: 8000, encoding: 'utf8' });
+        checks['version stdout'] = (r.stdout || '').trim().substring(0, 200) || 'empty';
+        checks['version stderr'] = (r.stderr || '').trim().substring(0, 400) || 'empty';
+        checks['version exit'] = r.status;
+        checks['version spawn error'] = r.error ? r.error.message.substring(0, 200) : 'none';
+      } catch(e) { checks['version run error'] = e.message.substring(0, 300); }
     }
   } catch(e) { checks['puppeteer.executablePath()'] = 'error: ' + e.message; }
   // Cache dir contents
