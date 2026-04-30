@@ -1,5 +1,5 @@
-[phases.setup]
-nixPkgs = ["chromium", "nss", "alsa-lib", "mesa"]
+# nixpacks.toml is kept as fallback, but railway.json uses DOCKERFILE builder.
+# The Dockerfile (node:20-slim + apt chromium) is the primary build config.
 
 [phases.install]
 cmds = [
@@ -9,8 +9,7 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "cd frontend && node node_modules/vite/bin/vite.js build",
-  "which chromium && echo 'nixpkgs chromium OK' || echo 'chromium NOT in PATH'"
+  "cd frontend && node node_modules/vite/bin/vite.js build"
 ]
 
 [start]
