@@ -22,12 +22,18 @@ const upsertProperty = db.prepare(`
     :source, :source_id, :source_url, :description, :case_number, :trustee, :lender, '[]'
   )
   ON CONFLICT(source, source_id) DO UPDATE SET
+    address         = excluded.address,
+    city            = excluded.city,
+    zip_code        = COALESCE(excluded.zip_code, zip_code),
+    lat             = COALESCE(excluded.lat, lat),
+    lng             = COALESCE(excluded.lng, lng),
     price           = COALESCE(excluded.price, price),
     status          = COALESCE(excluded.status, status),
     auction_date    = COALESCE(excluded.auction_date, auction_date),
     bedrooms        = COALESCE(excluded.bedrooms, bedrooms),
     bathrooms       = COALESCE(excluded.bathrooms, bathrooms),
     sqft            = COALESCE(excluded.sqft, sqft),
+    year_built      = COALESCE(excluded.year_built, year_built),
     source_url      = COALESCE(excluded.source_url, source_url),
     description     = COALESCE(excluded.description, description),
     updated_at      = datetime('now')
