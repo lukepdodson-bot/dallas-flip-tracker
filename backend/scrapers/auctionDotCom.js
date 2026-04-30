@@ -1,15 +1,15 @@
 /**
  * Auction.com Scraper — Dallas County, TX
  *
- * Auction.com lists bank-owned and foreclosure properties going to online auction.
- * Site uses Incapsula; puppeteer-extra stealth is used to pass the bot challenge.
- * We intercept the JSON API response the React app makes internally.
+ * Navigates to the Dallas County residential search page,
+ * waits for React cards to render, then extracts property data via:
+ *   1. Intercepted JSON API response (fastest)
+ *   2. JSON-LD <script> tags embedded in the page (cleanest)
+ *   3. DOM evaluation of rendered cards (fallback)
  */
 const { launchBrowser, newPage } = require('./browser');
 
-const SEARCH_URL =
-  'https://www.auction.com/residential/?' +
-  'sort=openDate&state=TX&county=Dallas+County&pageNum=1&pageSize=96';
+const SEARCH_URL = 'https://www.auction.com/residential/texas/dallas-county/';
 
 async function scrapeAuctionDotCom() {
   const results = [];
@@ -19,103 +19,188 @@ async function scrapeAuctionDotCom() {
     browser = await launchBrowser();
     const page = await newPage(browser);
 
-    // Intercept XHR/fetch calls to capture the internal listings API response
+    // Intercept JSON API responses
     let apiData = null;
     page.on('response', async response => {
-      const url = response.url();
-      if (
-        url.includes('/api/') &&
-        (url.includes('search') || url.includes('listing') || url.includes('properties')) &&
-        response.headers()['content-type']?.includes('json')
-      ) {
-        try {
-          apiData = await response.json();
-          console.log(`[Auction.com] Captured API response from: ${url.split('?')[0]}`);
-        } catch {}
-      }
+      try {
+        const url = response.url();
+        const ct  = response.headers()['content-type'] || '';
+        if (!ct.includes('json')) return;
+        // Auction.com's internal search API
+        if (
+          url.includes('auction.com') &&
+          (url.includes('/search') || url.includes('/assets') || url.includes('/listings') || url.includes('/properties'))
+        ) {
+          const data = await response.json().catch(() => null);
+          if (data && !apiData) {
+            apiData = data;
+            console.log(`[Auction.com] Captured API: ${url.split('?')[0]} (keys: ${Object.keys(data).slice(0, 5).join(', ')})`);
+          }
+        }
+      } catch {}
     });
 
-    console.log('[Auction.com] Navigating…');
+    console.log('[Auction.com] Navigating to Dallas County search...');
     await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60000 });
     await page.humanDelay();
 
     const title = await page.title();
-    console.log(`[Auction.com] Page title: ${title}`);
+    console.log(`[Auction.com] Title: ${title}`);
 
-    // If we captured a JSON API response, parse it
+    // ── Method 1: Use captured API data ──────────────────────────────────────
     if (apiData) {
       const listings =
         apiData.listings ||
-        apiData.results ||
+        apiData.results  ||
         apiData.properties ||
+        apiData.assets   ||
         apiData.data?.listings ||
-        apiData.data?.results ||
-        [];
+        apiData.data?.results  ||
+        (Array.isArray(apiData) ? apiData : []);
 
-      console.log(`[Auction.com] API returned ${listings.length} listings`);
-
+      console.log(`[Auction.com] API listings: ${listings.length}`);
       for (const l of listings) {
         const county = (l.county || l.countyName || '').toLowerCase();
-        if (!county.includes('dallas') && county !== '') continue;
-
+        if (county && !county.includes('dallas')) continue;
         results.push(normalizeListing(l));
       }
     }
 
-    // Fallback: parse the rendered HTML if API wasn't captured
+    // ── Method 2: JSON-LD structured data ────────────────────────────────────
     if (results.length === 0) {
-      const html = await page.content();
-      const cheerio = require('cheerio');
-      const $ = cheerio.load(html);
+      console.log('[Auction.com] Trying JSON-LD extraction...');
+      const jsonLdBlocks = await page.evaluate(() => {
+        const scripts = document.querySelectorAll('script[type="application/ld+json"]');
+        return Array.from(scripts).map(s => {
+          try { return JSON.parse(s.textContent); } catch { return null; }
+        }).filter(Boolean);
+      });
 
-      const selectors = [
-        '[data-testid*="property"]',
-        '[class*="PropertyCard"]',
-        '[class*="property-card"]',
-        '[class*="listing-tile"]',
-        '[class*="ListingTile"]',
-        'article[class*="listing"]',
-      ];
+      for (const block of jsonLdBlocks) {
+        const items = Array.isArray(block) ? block : [block];
+        for (const item of items) {
+          // Skip non-property schema types
+          const type = (item['@type'] || '').toLowerCase();
+          if (!type.includes('residence') && !type.includes('house') &&
+              !type.includes('accommodation') && !type.includes('realestate') &&
+              !type.includes('property')) continue;
 
-      let cards = $();
-      for (const sel of selectors) {
-        cards = $(sel);
-        if (cards.length > 0) {
-          console.log(`[Auction.com] Found ${cards.length} cards with selector: ${sel}`);
-          break;
+          const addr = item.address || {};
+          const streetAddress = addr.streetAddress || '';
+          if (!streetAddress) continue;
+          // Dallas County filter
+          const region = (addr.addressRegion || '').toUpperCase();
+          const locality = (addr.addressLocality || '').toUpperCase();
+          if (region !== 'TX') continue;
+
+          const offer = (item.offers || {});
+          const price = parseFloat(offer.price) || null;
+          const url   = item.url || '';
+
+          results.push({
+            address:       streetAddress.replace(/,?\s*(TX|Texas).*/i, '').trim(),
+            city:          toTitleCase(addr.addressLocality || 'Dallas'),
+            zip_code:      addr.postalCode || null,
+            county:        'Dallas',
+            price,
+            bedrooms:      parseInt(item.numberOfBedrooms)  || null,
+            bathrooms:     parseInt(item.numberOfBathroomsTotal) || null,
+            sqft:          parseInt(item.floorSize?.value)  || null,
+            year_built:    parseInt(item.yearBuilt)         || null,
+            property_type: 'SFR',
+            sale_type:     'Foreclosure',
+            status:        'Active',
+            source:        'Auction.com',
+            source_id:     `AUCTION-${streetAddress.replace(/\W+/g, '-').substring(0, 60)}`,
+            source_url:    url.startsWith('http') ? url : (url ? `https://www.auction.com${url}` : SEARCH_URL),
+            description:   item.description || 'Auction.com foreclosure auction. Register to bid.',
+          });
         }
       }
+      console.log(`[Auction.com] JSON-LD extracted ${results.length} properties`);
+    }
 
-      cards.each((_, card) => {
-        const text    = $(card).text();
-        const address = $(card).find('[class*="address" i], [class*="street" i]').first().text().trim()
-                     || $(card).find('h2, h3').first().text().trim();
-        const priceEl = $(card).find('[class*="price" i], [class*="bid" i]').first().text();
-        const price   = parseFloat(priceEl.replace(/[^0-9.]/g, '')) || null;
-        const href    = $(card).find('a[href*="/detail"], a[href*="/property"]').first().attr('href')
-                     || $(card).closest('a').attr('href')
-                     || $(card).find('a').first().attr('href');
+    // ── Method 3: DOM evaluation of rendered cards ────────────────────────────
+    if (results.length === 0) {
+      console.log('[Auction.com] Trying DOM card extraction...');
+      try {
+        await page.waitForSelector('[data-elm-id^="asset_"]', { timeout: 15000 });
+      } catch {
+        console.log('[Auction.com] No asset cards found within 15s');
+      }
 
-        if (!address || address.length < 5) return;
-        // Rough Dallas County filter
-        if (text && !text.toLowerCase().includes('dallas') && !text.toLowerCase().includes('tx')) return;
+      const cards = await page.evaluate(() => {
+        const roots = document.querySelectorAll('[data-elm-id^="asset_"][data-elm-id$="_root"]');
+        return Array.from(roots).map(root => {
+          const link    = root.querySelector('a[href*="/details/"]');
+          const imgSpan = root.querySelector('[aria-label]');
+          const allText = root.innerText || root.textContent || '';
 
-        results.push({
-          address:   address.replace(/,?\s*(TX|Texas).*/i, '').trim(),
-          city:      extractCity(text) || 'Dallas',
-          county:    'Dallas',
-          price,
-          property_type: 'SFR',
-          sale_type: 'Foreclosure',
-          status:    'Active',
-          source:    'Auction.com',
-          source_id: `AUCTION-${address.replace(/\W+/g, '-')}`,
-          source_url: href
-            ? (href.startsWith('http') ? href : `https://www.auction.com${href}`)
-            : null,
-          description: 'Auction.com online auction. Register to bid at auction.com.',
+          // Extract price (look for $ amounts)
+          const priceMatch = allText.match(/\$[\d,]+/);
+          const price = priceMatch
+            ? parseFloat(priceMatch[0].replace(/[^0-9.]/g, ''))
+            : null;
+
+          // Address from aria-label on image: "  DeSoto, TX 75115"
+          // Full address is in the link href: /details/549-sharp-dr-desoto-tx-2039095
+          const ariaLabel = imgSpan ? imgSpan.getAttribute('aria-label') : '';
+          const href      = link ? link.getAttribute('href') : '';
+
+          // Parse address from href: /details/549-sharp-dr-desoto-tx-2039095
+          let address = '', city = '', zip = '', assetId = '';
+          if (href) {
+            const match = href.match(/\/details\/(.+)-(\d+)$/);
+            if (match) {
+              assetId = match[2];
+              const parts = match[1].split('-');
+              // Last two parts before the ID are state (tx) and city
+              // Find the state (tx) index
+              const txIdx = parts.lastIndexOf('tx');
+              if (txIdx > 0) {
+                city = toTitleCase(parts.slice(txIdx - 1, txIdx).join(' '));
+                address = toTitleCase(parts.slice(0, txIdx - 1).join(' '));
+              } else {
+                address = toTitleCase(parts.join(' '));
+              }
+            }
+          }
+
+          // Fallback city from aria-label: "  DeSoto, TX 75115"
+          if (!city && ariaLabel) {
+            const m = ariaLabel.trim().match(/^(.+),\s*TX\s*(\d{5})?/i);
+            if (m) { city = m[1].trim(); zip = m[2] || ''; }
+          }
+
+          return { address, city, zip, href, assetId, price, ariaLabel };
         });
+
+        function toTitleCase(s) {
+          return s.replace(/\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        }
       });
+
+      console.log(`[Auction.com] DOM found ${cards.length} cards`);
+
+      for (const c of cards) {
+        if (!c.address || c.address.length < 5) continue;
+        results.push({
+          address:       c.address,
+          city:          c.city || 'Dallas',
+          zip_code:      c.zip   || null,
+          county:        'Dallas',
+          price:         c.price || null,
+          property_type: 'SFR',
+          sale_type:     'Foreclosure',
+          status:        'Active',
+          source:        'Auction.com',
+          source_id:     `AUCTION-${c.assetId || c.address.replace(/\W+/g, '-').substring(0, 50)}`,
+          source_url:    c.href
+            ? `https://www.auction.com${c.href}`
+            : SEARCH_URL,
+          description:   'Auction.com online foreclosure auction. Register to bid at auction.com.',
+        });
+      }
     }
 
     console.log(`[Auction.com] Returning ${results.length} properties`);
@@ -135,24 +220,24 @@ function normalizeListing(l) {
 
   return {
     address:        (address || '').replace(/,?\s*(TX|Texas).*/i, '').trim(),
-    city:           l.city || l.cityName || 'Dallas',
-    zip_code:       l.zip  || l.postalCode || l.zipCode || null,
+    city:           toTitleCase(l.city || l.cityName || 'Dallas'),
+    zip_code:       l.zip || l.postalCode || l.zipCode || null,
     county:         'Dallas',
-    lat:            l.latitude  || l.lat || null,
-    lng:            l.longitude || l.lng || null,
-    price:          l.openingBid || l.startingBid || l.price || l.currentBid || null,
-    estimated_value: l.assessedValue || l.estimatedValue || l.arv || null,
-    bedrooms:       l.beds   || l.bedrooms   || null,
-    bathrooms:      l.baths  || l.bathrooms  || null,
-    sqft:           l.sqft   || l.squareFeet || null,
-    year_built:     l.yearBuilt || null,
+    lat:            parseFloat(l.latitude  || l.lat) || null,
+    lng:            parseFloat(l.longitude || l.lng) || null,
+    price:          parseFloat(l.openingBid || l.startingBid || l.price || l.currentBid) || null,
+    estimated_value: parseFloat(l.assessedValue || l.estimatedValue || l.arv) || null,
+    bedrooms:       parseInt(l.beds   || l.bedrooms)   || null,
+    bathrooms:      parseFloat(l.baths || l.bathrooms) || null,
+    sqft:           parseInt(l.sqft   || l.squareFeet) || null,
+    year_built:     parseInt(l.yearBuilt) || null,
     property_type:  normalizeType(l.propertyType),
     sale_type:      l.listingType === 'BUY' ? 'REO' : 'Foreclosure',
     status:         'Active',
     auction_date:   fmtDate(l.auctionDate || l.openDate || l.saleDate),
     list_date:      fmtDate(l.listDate || l.startDate),
     source:         'Auction.com',
-    source_id:      String(l.id || l.listingId || l.propertyId || address.replace(/\W+/g,'-')),
+    source_id:      String(l.id || l.listingId || l.propertyId || (address||'').replace(/\W+/g,'-')).substring(0, 80),
     source_url:     l.url
       ? (l.url.startsWith('http') ? l.url : `https://www.auction.com${l.url}`)
       : null,
@@ -173,12 +258,9 @@ function normalizeType(t) {
   return 'SFR';
 }
 
-function extractCity(text) {
-  const dallas  = ['Dallas','Irving','Garland','Mesquite','DeSoto','Lancaster','Rowlett','Grand Prairie','Duncanville','Balch Springs','Hutchins','Wilmer','Seagoville','Sunnyvale','Sachse','Farmers Branch'];
-  for (const c of dallas) {
-    if (text.includes(c)) return c;
-  }
-  return null;
+function toTitleCase(s) {
+  if (!s) return s;
+  return s.replace(/\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
 function fmtDate(str) {

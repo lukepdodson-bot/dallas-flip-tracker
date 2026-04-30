@@ -1,17 +1,18 @@
 /**
  * Dallas County Foreclosure Scraper
  *
- * Sources two types of Dallas County distressed properties:
+ * Sources for Dallas County distressed / foreclosure properties:
  *
- * 1. Bid4Assets — Dallas County holds its annual tax deed sales here.
- *    URL: https://www.bid4assets.com/txdallas
+ * 1. Bid4Assets — Dallas County tax deed sales
+ *    https://www.bid4assets.com/auctions#/taxsales?countyId=12&stateId=TX
  *
- * 2. BDFTE (Barrett Daffin Frappier Turner & Engel) — one of the largest
- *    Texas foreclosure trustees; they publish upcoming first-Tuesday auction
- *    lists on their portal for each Texas county.
- *    URL: https://www.logs.com/ (Texas Foreclosure Monthly Sale lists)
+ * 2. BDFTE / Barrett Daffin trustee sale notices via logs.com
+ *    https://www.logs.com/texas/ (Dallas county section)
  *
- * Both are rendered in the browser so we use puppeteer stealth.
+ * 3. Dallas County District Clerk monthly foreclosure notice list
+ *    https://www.dallascounty.org/departments/countyclerk/foreclosure.php
+ *
+ * Browser rendering used for all three (React/JS-heavy sites).
  */
 const cheerio = require('cheerio');
 const { launchBrowser, newPage } = require('./browser');
@@ -31,6 +32,13 @@ function nextFirstTuesdays(count = 4) {
   return out;
 }
 
+const DALLAS_CITIES = [
+  'Dallas','Irving','Garland','Mesquite','DeSoto','Lancaster','Rowlett',
+  'Grand Prairie','Duncanville','Balch Springs','Hutchins','Wilmer',
+  'Seagoville','Sunnyvale','Sachse','Farmers Branch','Richardson',
+  'Carrollton','Cedar Hill','Glenn Heights','Cockrell Hill',
+];
+
 async function scrapeDallasCountyForeclosures() {
   const results = [];
   const upcomingTuesday = nextFirstTuesdays(1)[0];
@@ -39,123 +47,210 @@ async function scrapeDallasCountyForeclosures() {
   try {
     browser = await launchBrowser();
 
-    // ── Source 1: Bid4Assets Dallas County Tax Sales ──────────────────────────
+    // ── Source 1: Bid4Assets tax sales ───────────────────────────────────────
     try {
       const page = await newPage(browser);
-      console.log('[Bid4Assets] Navigating…');
+      console.log('[Bid4Assets] Navigating...');
+
+      // Try the tax sales search with Dallas County TX filter
       await page.goto('https://www.bid4assets.com/txdallas', {
         waitUntil: 'networkidle2',
         timeout: 60000,
       });
       await page.humanDelay();
 
-      // Try to intercept any JSON data response
+      const title = await page.title();
+      console.log(`[Bid4Assets] Title: "${title}"`);
+
       const html = await page.content();
       const $    = cheerio.load(html);
 
-      const cards = $('[class*="auction-item"], [class*="property-item"], [class*="listing"], .auc-item, .property-card, article');
-      console.log(`[Bid4Assets] Found ${cards.length} cards`);
+      // Bid4Assets uses various card/item structures
+      const selectors = [
+        '.auction-item',
+        '[class*="auction-item"]',
+        '[class*="property-item"]',
+        '[class*="listing-item"]',
+        '.property-card',
+        'article[class*="auction"]',
+        '[data-id]',
+        '.results-list li',
+      ];
+
+      let cards = $([]);
+      for (const sel of selectors) {
+        const found = $(sel);
+        if (found.length > 0) {
+          cards = found;
+          console.log(`[Bid4Assets] Using selector "${sel}": ${found.length} items`);
+          break;
+        }
+      }
 
       cards.each((_, card) => {
-        const text     = $(card).text();
-        const address  = $(card).find('[class*="address" i], [class*="street" i], h2, h3').first().text().trim();
+        const text    = $(card).text().trim();
+        const address = $(card).find('[class*="address" i], [class*="street" i], h2, h3, .title').first().text().trim();
+        if (!address || address.length < 5) return;
+        if (!text.toLowerCase().includes('dallas') && !isDallasCity(address)) return;
+
         const priceEl  = $(card).find('[class*="price" i], [class*="bid" i], [class*="amount" i]').first().text();
         const price    = parseFloat(priceEl.replace(/[^0-9.]/g, '')) || null;
         const href     = $(card).find('a').first().attr('href');
-        const dateEl   = $(card).find('[class*="date" i], [class*="end" i]').first().text();
-        const auctionDate = fmtDate(dateEl) || upcomingTuesday;
-
-        if (!address || address.length < 5) return;
+        const dataId   = $(card).attr('data-id') || $(card).attr('id') || '';
 
         results.push({
-          address:      address.replace(/,?\s*(TX|Texas).*/i, '').trim(),
-          city:         extractCity(text) || 'Dallas',
+          address:      address.replace(/,?\s*(TX|Texas|\d{5}).*/i, '').trim(),
+          city:         extractCity(text) || extractCity(address) || 'Dallas',
           county:       'Dallas',
           price,
           property_type: 'SFR',
           sale_type:    'Tax Sale',
           status:       'Active',
-          auction_date: auctionDate,
+          auction_date: upcomingTuesday,
           list_date:    new Date().toISOString().split('T')[0],
           source:       'Dallas County Tax Sale',
-          source_id:    `BID4-${address.replace(/\W+/g, '-')}`,
+          source_id:    `BID4-${dataId || address.replace(/\W+/g, '-').substring(0, 60)}`,
           source_url:   href
             ? (href.startsWith('http') ? href : `https://www.bid4assets.com${href}`)
             : 'https://www.bid4assets.com/txdallas',
-          description:
-            'Dallas County tax deed sale via Bid4Assets. ' +
-            'Buyer responsible for any remaining liens. Online bidding.',
+          description:  'Dallas County tax deed sale via Bid4Assets. Buyer responsible for any remaining liens. Online bidding.',
         });
       });
+
+      console.log(`[Bid4Assets] Found ${results.length} properties`);
       await page.close();
     } catch (e) {
       console.error('[Bid4Assets] Error:', e.message);
     }
 
-    // ── Source 2: logs.com — Texas Trustee Sale Monthly Lists (BDFTE) ────────
+    // ── Source 2: LOGS.com Texas foreclosure notices ──────────────────────────
     try {
       const page = await newPage(browser);
-      console.log('[LOGS.com] Navigating to Texas foreclosure list…');
+      const logsUrls = [
+        'https://www.logs.com/texas/dallas/',
+        'https://www.logs.com/texas/',
+      ];
 
-      // logs.com is the Trustee Sale publication portal for major TX foreclosure trustees
-      await page.goto('https://www.logs.com/texas/dallas/', {
-        waitUntil: 'networkidle2',
-        timeout: 60000,
-      });
-      await page.humanDelay();
+      let html = null;
+      let usedUrl = '';
+      for (const url of logsUrls) {
+        try {
+          console.log(`[LOGS.com] Trying ${url}...`);
+          await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
+          const pg = await page.content();
+          if (!pg.includes('404') && pg.length > 10000) {
+            html = pg;
+            usedUrl = url;
+            break;
+          }
+        } catch {}
+      }
 
-      const html = await page.content();
-      const $    = cheerio.load(html);
+      if (html) {
+        console.log(`[LOGS.com] Loaded: ${usedUrl}`);
+        const $ = cheerio.load(html);
+        const prevLen = results.length;
 
-      // The page lists properties with case numbers, addresses, trustee info
-      const rows = $('table tr, .foreclosure-item, [class*="notice"], li[class*="item"]');
-      console.log(`[LOGS.com] Found ${rows.length} rows`);
+        // Parse table rows typical of legal notice sites
+        $('table tr').each((i, row) => {
+          if (i === 0) return;
+          const cells = $(row).find('td');
+          const text  = $(row).text();
+          if (!text.toLowerCase().includes('dallas')) return;
+          if (cells.length < 2) return;
 
-      rows.each((i, row) => {
-        if (i === 0) return;
-        const cells   = $(row).find('td');
-        const text    = $(row).text();
-        if (text.length < 10) return;
+          const caseNum  = $(cells[0]).text().trim();
+          const address  = $(cells[1]).text().trim() || $(cells[0]).find('a').text().trim();
+          if (!address || address.length < 5) return;
 
-        let address, caseNum, trustee, saleDate;
-
-        if (cells.length >= 3) {
-          caseNum  = $(cells[0]).text().trim();
-          address  = $(cells[1]).text().trim();
-          trustee  = $(cells[2]).text().trim();
-          saleDate = $(cells[3])?.text().trim();
-        } else {
-          address = $(row).find('[class*="address" i]').text().trim() || text.trim();
-        }
-
-        if (!address || address.length < 5) return;
-        if (!text.toLowerCase().includes('dallas')) return;
-
-        const href = $(row).find('a').first().attr('href');
-        results.push({
-          address:      address.replace(/,?\s*(TX|Dallas|75\d{3}).*/i, '').trim(),
-          city:         extractCity(text) || 'Dallas',
-          county:       'Dallas',
-          property_type: 'SFR',
-          sale_type:    'Foreclosure',
-          status:       'Active',
-          auction_date: fmtDate(saleDate) || upcomingTuesday,
-          list_date:    new Date().toISOString().split('T')[0],
-          source:       'Dallas County Clerk',
-          source_id:    caseNum || `LOGS-${address.replace(/\W+/g, '-')}`,
-          source_url:   href
-            ? (href.startsWith('http') ? href : `https://www.logs.com${href}`)
-            : 'https://www.logs.com/texas/dallas/',
-          case_number:  caseNum || null,
-          trustee:      trustee || null,
-          description:
-            `Notice of Trustee Sale — Dallas County. ` +
-            `Auction at Dallas County Courthouse, 600 Commerce St. Cash only.`,
+          const href = $(row).find('a').first().attr('href');
+          results.push({
+            address:      address.replace(/,?\s*(TX|Texas|\d{5}).*/i, '').trim(),
+            city:         extractCity(text) || 'Dallas',
+            county:       'Dallas',
+            property_type: 'SFR',
+            sale_type:    'Foreclosure',
+            status:       'Active',
+            auction_date: upcomingTuesday,
+            list_date:    new Date().toISOString().split('T')[0],
+            source:       'Dallas County Clerk',
+            source_id:    caseNum || `LOGS-${address.replace(/\W+/g, '-').substring(0, 60)}`,
+            source_url:   href
+              ? (href.startsWith('http') ? href : `https://www.logs.com${href}`)
+              : usedUrl,
+            case_number:  caseNum || null,
+            description:  'Notice of Trustee Sale — Dallas County. Auction at Dallas County Courthouse, 600 Commerce St. Cash only.',
+          });
         });
-      });
+
+        console.log(`[LOGS.com] Found ${results.length - prevLen} properties`);
+      } else {
+        console.log('[LOGS.com] No usable page found');
+      }
       await page.close();
     } catch (e) {
       console.error('[LOGS.com] Error:', e.message);
+    }
+
+    // ── Source 3: Dallas County Foreclosure notices (dallascounty.org) ────────
+    try {
+      const page = await newPage(browser);
+      console.log('[Dallas Co Clerk] Navigating...');
+      await page.goto('https://www.dallascounty.org/departments/countyclerk/foreclosure.php', {
+        waitUntil: 'networkidle2',
+        timeout: 45000,
+      });
+      await page.humanDelay();
+
+      const title = await page.title();
+      console.log(`[Dallas Co Clerk] Title: "${title}"`);
+
+      const html = await page.content();
+      if (!html.includes('404')) {
+        const $ = cheerio.load(html);
+        const prevLen = results.length;
+
+        // Look for PDF/document links for foreclosure lists
+        $('a[href*=".pdf"], a[href*="foreclosure"], a[href*="notice"]').each((_, link) => {
+          const text = $(link).text().trim();
+          if (!text) return;
+          const href = $(link).attr('href');
+          // These are document links, not individual properties
+          // Just log them for now
+          console.log(`[Dallas Co Clerk] Doc link: ${text} -> ${href}`);
+        });
+
+        // Try any table with address data
+        $('table tr').each((i, row) => {
+          if (i === 0) return;
+          const cells = $(row).find('td');
+          if (cells.length < 2) return;
+          const address = $(cells[0]).text().trim() || $(cells[1]).text().trim();
+          if (!address || address.length < 10) return;
+          const href = $(row).find('a').first().attr('href');
+          results.push({
+            address:      address.replace(/,?\s*(TX|Texas|\d{5}).*/i, '').trim(),
+            city:         extractCity($(row).text()) || 'Dallas',
+            county:       'Dallas',
+            property_type: 'SFR',
+            sale_type:    'Foreclosure',
+            status:       'Active',
+            auction_date: upcomingTuesday,
+            list_date:    new Date().toISOString().split('T')[0],
+            source:       'Dallas County Clerk',
+            source_id:    `DCC-${address.replace(/\W+/g, '-').substring(0, 60)}`,
+            source_url:   href
+              ? (href.startsWith('http') ? href : `https://www.dallascounty.org${href}`)
+              : 'https://www.dallascounty.org/departments/countyclerk/foreclosure.php',
+            description:  'Foreclosure notice from Dallas County Clerk. Auction at Dallas County Courthouse.',
+          });
+        });
+
+        console.log(`[Dallas Co Clerk] Found ${results.length - prevLen} properties`);
+      }
+      await page.close();
+    } catch (e) {
+      console.error('[Dallas Co Clerk] Error:', e.message);
     }
 
     console.log(`[Dallas County] Total: ${results.length} properties`);
@@ -168,13 +263,13 @@ async function scrapeDallasCountyForeclosures() {
   return results;
 }
 
+function isDallasCity(text) {
+  const t = text.toLowerCase();
+  return DALLAS_CITIES.some(c => t.includes(c.toLowerCase()));
+}
+
 function extractCity(text) {
-  const cities = [
-    'Dallas','Irving','Garland','Mesquite','DeSoto','Lancaster','Rowlett',
-    'Grand Prairie','Duncanville','Balch Springs','Hutchins','Wilmer',
-    'Seagoville','Sunnyvale','Sachse','Farmers Branch','Richardson','Carrollton',
-  ];
-  for (const c of cities) {
+  for (const c of DALLAS_CITIES) {
     if (text.includes(c)) return c;
   }
   return null;
