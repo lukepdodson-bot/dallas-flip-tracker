@@ -65,17 +65,28 @@ app.get('/api/scrape/test', require('./routes/auth').requireAuth, async (req, re
     const { launchBrowser, newPage } = require('./scrapers/browser');
     const browser = await launchBrowser();
     const page = await newPage(browser);
-    const url = req.query.url || 'https://www.hudhomestore.gov/Listing/PropertySearchResult.aspx?state=TX&county=DALLAS&searchType=searchByCounty&pageNumber=1&pageSize=50';
+    const url = req.query.url || 'https://www.hudhomestore.gov';
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 45000 });
     const title = await page.title();
     const html  = await page.content();
     await browser.close();
+
+    // Search for property-related content in full HTML
+    const keywords = ['address', 'price', 'bedroom', 'bath', 'sqft', 'listing', 'auction', 'foreclosure', 'Dallas', 'property', 'asset', 'parcel'];
+    const snippets = {};
+    for (const kw of keywords) {
+      const idx = html.toLowerCase().indexOf(kw.toLowerCase());
+      if (idx !== -1) snippets[kw] = html.substring(Math.max(0, idx - 50), idx + 200);
+    }
+
     res.json({
       url, title,
       htmlLength: html.length,
-      htmlSnippet: html.substring(0, 2000),
+      htmlStart: html.substring(0, 1000),
+      htmlMid: html.substring(Math.floor(html.length / 2), Math.floor(html.length / 2) + 1000),
+      htmlEnd: html.substring(Math.max(0, html.length - 1000)),
       hasTable: html.includes('<table'),
-      hasListings: html.includes('listdate') || html.includes('property') || html.includes('Dallas'),
+      keywordSnippets: snippets,
     });
   } catch (e) {
     res.json({ error: e.message.substring(0, 500) });
