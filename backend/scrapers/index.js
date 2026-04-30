@@ -6,6 +6,7 @@ const db = require('../db/database');
 const { scrapeHUDHomes }               = require('./hudHomes');
 const { scrapeDallasCountyForeclosures } = require('./dallasCountyClerk');
 const { scrapeAuctionDotCom }          = require('./auctionDotCom');
+const { scrapeXome }                   = require('./xome');
 const { geocodeUngeocodedProperties }  = require('./geocoder');
 
 // NOTE: uses :param syntax (not @param) — matches the sql.js wrapper's bindParams()
@@ -44,6 +45,7 @@ async function runAllScrapers() {
     { name: 'HUD Homes',          fn: scrapeHUDHomes },
     { name: 'Dallas County',      fn: scrapeDallasCountyForeclosures },
     { name: 'Auction.com',        fn: scrapeAuctionDotCom },
+    { name: 'Xome',               fn: scrapeXome },
   ];
 
   let totalAdded = 0, totalUpdated = 0;
