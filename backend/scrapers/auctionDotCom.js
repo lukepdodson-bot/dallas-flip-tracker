@@ -129,7 +129,21 @@ async function scrapeAuctionDotCom() {
         console.log('[Auction.com] No asset cards found within 15s');
       }
 
-      const cards = await page.evaluate(() => {
+      // Known multi-word Dallas-area city slugs (lowercase, hyphen-separated)
+      const KNOWN_CITIES = [
+        'grand-prairie','balch-springs','oak-leaf','farmers-branch',
+        'cedar-hill','glenn-heights','cockrell-hill','de-soto','desoto',
+        'oak-cliff','north-dallas','south-dallas','lake-highlands',
+        'university-park','highland-park','oak-lawn','white-rock',
+        'pleasant-grove','far-north-dallas',
+      ];
+      const KNOWN_CITIES_1 = [
+        'dallas','irving','garland','mesquite','desoto','lancaster',
+        'rowlett','hutchins','wilmer','seagoville','sunnyvale','sachse',
+        'richardson','carrollton','duncanville',
+      ];
+
+      const cards = await page.evaluate((knownCities2, knownCities1) => {
         const roots = document.querySelectorAll('[data-elm-id^="asset_"][data-elm-id$="_root"]');
         return Array.from(roots).map(root => {
           const link    = root.querySelector('a[href*="/details/"]');
@@ -142,27 +156,43 @@ async function scrapeAuctionDotCom() {
             ? parseFloat(priceMatch[0].replace(/[^0-9.]/g, ''))
             : null;
 
-          // Address from aria-label on image: "  DeSoto, TX 75115"
-          // Full address is in the link href: /details/549-sharp-dr-desoto-tx-2039095
           const ariaLabel = imgSpan ? imgSpan.getAttribute('aria-label') : '';
           const href      = link ? link.getAttribute('href') : '';
 
           // Parse address from href: /details/549-sharp-dr-desoto-tx-2039095
+          // or /details/618-royal-ave-grand-prairie-tx-2039102
           let address = '', city = '', zip = '', assetId = '';
           if (href) {
             const match = href.match(/\/details\/(.+)-(\d+)$/);
             if (match) {
               assetId = match[2];
-              const parts = match[1].split('-');
-              // Last two parts before the ID are state (tx) and city
-              // Find the state (tx) index
-              const txIdx = parts.lastIndexOf('tx');
-              if (txIdx > 0) {
-                city = toTitleCase(parts.slice(txIdx - 1, txIdx).join(' '));
-                address = toTitleCase(parts.slice(0, txIdx - 1).join(' '));
-              } else {
-                address = toTitleCase(parts.join(' '));
+              const slug  = match[1]; // e.g. "618-royal-ave-grand-prairie-tx"
+              // Remove trailing "-tx"
+              const noState = slug.replace(/-tx$/, '');
+              // Try to match a known 2-word city at the end
+              let citySlug = '', addressSlug = noState;
+              for (const c of knownCities2) {
+                if (noState.endsWith('-' + c) || noState === c) {
+                  citySlug = c;
+                  addressSlug = noState.slice(0, noState.length - c.length - 1);
+                  break;
+                }
               }
+              // Fallback: try 1-word city
+              if (!citySlug) {
+                const parts = noState.split('-');
+                const lastWord = parts[parts.length - 1];
+                if (knownCities1.includes(lastWord)) {
+                  citySlug = lastWord;
+                  addressSlug = parts.slice(0, -1).join('-');
+                } else {
+                  // Just take the last word as city
+                  citySlug = lastWord;
+                  addressSlug = parts.slice(0, -1).join('-');
+                }
+              }
+              city    = toTitleCase(citySlug.replace(/-/g, ' '));
+              address = toTitleCase(addressSlug.replace(/-/g, ' '));
             }
           }
 
@@ -171,14 +201,19 @@ async function scrapeAuctionDotCom() {
             const m = ariaLabel.trim().match(/^(.+),\s*TX\s*(\d{5})?/i);
             if (m) { city = m[1].trim(); zip = m[2] || ''; }
           }
+          // Get zip from aria-label
+          if (!zip && ariaLabel) {
+            const m = ariaLabel.match(/(\d{5})/);
+            if (m) zip = m[1];
+          }
 
           return { address, city, zip, href, assetId, price, ariaLabel };
         });
 
         function toTitleCase(s) {
-          return s.replace(/\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+          return (s || '').replace(/\w+/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
         }
-      });
+      }, KNOWN_CITIES, KNOWN_CITIES_1);
 
       console.log(`[Auction.com] DOM found ${cards.length} cards`);
 
