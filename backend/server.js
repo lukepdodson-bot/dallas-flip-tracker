@@ -182,7 +182,7 @@ if (process.env.NODE_ENV === 'production') {
   try { require('./seed'); } catch (e) { console.error('Seed error:', e.message); }
 
   // Daily scrape at 6 AM Central
-  cron.schedule('0 12 * * *', async () => {
+  cron.schedule('0 6 * * *', async () => {
     console.log('[Cron] Running daily scrape...');
     try {
       const { runAllScrapers } = require('./scrapers/index');
