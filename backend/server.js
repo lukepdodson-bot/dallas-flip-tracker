@@ -55,6 +55,33 @@ app.post('/api/scrape/run', require('./routes/auth').requireAuth, async (req, re
   runAllScrapers().catch(console.error);
 });
 
+// Trigger geocoding only (admin only)
+app.post('/api/geocode/run', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { geocodeUngeocodedProperties } = require('./scrapers/geocoder');
+    const before = db.prepare('SELECT COUNT(*) as c FROM properties WHERE lat IS NULL OR lng IS NULL').get();
+    res.json({ message: 'Geocoding started', ungeocodedBefore: before.c });
+    geocodeUngeocodedProperties(db).catch(console.error);
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+// Test single geocode (admin only) — diagnostic
+app.get('/api/geocode/test', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { geocodeAddress } = require('./scrapers/geocoder');
+    const address = req.query.address || '549 Sharp Dr';
+    const city    = req.query.city    || 'Desoto';
+    const result = await geocodeAddress(address, city, 'TX');
+    res.json({ address, city, result });
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
 // Health check (must be before the frontend catch-all)
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
