@@ -1,17 +1,19 @@
 /**
  * HUD HomeStore Scraper — Dallas County, TX
  *
- * HUD HomeStore now uses Yardi Systems as backend.
- * The search API endpoint is at /api/Listing/GetListings
- * We navigate to the main search page and intercept the API call,
- * or fall back to parsing the rendered HTML.
+ * HUD HomeStore renders search results server-side in HTML.
+ * Search URL: https://www.hudhomestore.gov/searchresult?citystate=Dallas%2C%20TX
+ *
+ * Each listing card has:
+ *   - case-number: "Case #: XXX-XXXXXX"
+ *   - lat/lng in onclick attribute (zoomOnSingleProperty)
+ *   - "Dallas County" text
+ *   - address in card title/heading
+ *   - price displayed prominently
  */
 const { launchBrowser, newPage } = require('./browser');
 
-// HUD HomeStore Yardi-based search — state=TX, county=dallas
-const SEARCH_URL = 'https://www.hudhomestore.gov/?StateCode=TX&CountyCode=113&SearchType=ST';
-// Alternative API endpoint (intercepted from browser DevTools)
-const API_URL = 'https://www.hudhomestore.gov/api/Listing/GetListings';
+const SEARCH_URL = 'https://www.hudhomestore.gov/searchresult?citystate=Dallas%2C%20TX';
 
 async function scrapeHUDHomes() {
   const results = [];
@@ -21,155 +23,119 @@ async function scrapeHUDHomes() {
     browser = await launchBrowser();
     const page = await newPage(browser);
 
-    // Intercept API calls from Yardi
-    let apiData = null;
-    page.on('response', async response => {
-      try {
-        const url = response.url();
-        const ct  = response.headers()['content-type'] || '';
-        if (!ct.includes('json')) return;
-        if (
-          url.includes('hudhomestore.gov') &&
-          (url.includes('/api/') || url.includes('GetListings') ||
-           url.includes('PropertySearch') || url.includes('search') ||
-           url.includes('listing'))
-        ) {
-          const data = await response.json().catch(() => null);
-          if (data && !apiData) {
-            apiData = data;
-            console.log(`[HUD] Captured API: ${url.split('?')[0]}`);
-          }
-        }
-      } catch {}
-    });
-
-    console.log('[HUD] Navigating to HUD HomeStore Dallas County search...');
+    console.log('[HUD] Navigating to Dallas County search results...');
     await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 60000 });
     await page.humanDelay();
 
     const title = await page.title();
     console.log(`[HUD] Title: "${title}"`);
 
-    // ── Method 1: API response captured via network interception ─────────────
-    if (apiData) {
-      console.log(`[HUD] API data keys: ${Object.keys(apiData).slice(0, 8).join(', ')}`);
-      const listings =
-        apiData.listings    ||
-        apiData.properties  ||
-        apiData.results     ||
-        apiData.data        ||
-        apiData.Items       ||
-        apiData.items       ||
-        (Array.isArray(apiData) ? apiData : []);
+    // Extract listings from the rendered DOM
+    const listings = await page.evaluate(() => {
+      const out = [];
 
-      console.log(`[HUD] API listings: ${listings.length}`);
-      for (const l of listings) {
-        const r = parseHudListing(l);
-        if (r) results.push(r);
-      }
-    }
+      // Find all elements containing a Case # — these mark listing cards
+      const allDivs = Array.from(document.querySelectorAll('.case-number, [class*="case-number"]'));
 
-    // ── Method 2: Try direct API call via page context ────────────────────────
-    if (results.length === 0) {
-      console.log('[HUD] Trying direct API fetch from page context...');
-      const apiResults = await page.evaluate(async () => {
-        const endpoints = [
-          '/api/Listing/GetListings?StateCode=TX&CountyCode=113&PageNumber=1&PageSize=100',
-          '/api/properties?state=TX&county=DALLAS&page=1&pageSize=100',
-          '/Listing/PropertySearchResult.aspx?state=TX&county=DALLAS&searchType=searchByCounty&pageNumber=1&pageSize=50',
-        ];
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch('https://www.hudhomestore.gov' + ep, {
-              headers: { 'Accept': 'application/json, text/html, */*' }
-            });
-            const ct = res.headers.get('content-type') || '';
-            if (ct.includes('json')) {
-              const data = await res.json();
-              return { url: ep, data };
-            }
-          } catch {}
+      for (const caseEl of allDivs) {
+        // Walk up to find the listing card container
+        let card = caseEl;
+        for (let i = 0; i < 8 && card; i++) {
+          if (card.classList && (
+              card.classList.toString().match(/property|listing|search-result|result-item|card/i)
+          )) break;
+          card = card.parentElement;
         }
-        return null;
-      }).catch(() => null);
+        if (!card) card = caseEl.parentElement?.parentElement?.parentElement;
+        if (!card) continue;
 
-      if (apiResults?.data) {
-        console.log(`[HUD] Direct API hit: ${apiResults.url}`);
-        const listings =
-          apiResults.data.listings || apiResults.data.properties ||
-          apiResults.data.results  || apiResults.data.data ||
-          (Array.isArray(apiResults.data) ? apiResults.data : []);
-        for (const l of listings) {
-          const r = parseHudListing(l);
-          if (r) results.push(r);
+        const allText = card.innerText || card.textContent || '';
+        const allHtml = card.outerHTML || '';
+
+        // Case number
+        const caseMatch = allText.match(/Case #:\s*([\w-]+)/i);
+        const caseNumber = caseMatch ? caseMatch[1] : null;
+        if (!caseNumber) continue;
+
+        // Lat/lng from onclick
+        const coordMatch = allHtml.match(/zoomOnSingleProperty\(([\d.-]+),\s*([\d.-]+)\)/);
+        const lat = coordMatch ? parseFloat(coordMatch[1]) : null;
+        const lng = coordMatch ? parseFloat(coordMatch[2]) : null;
+
+        // Address — usually in an h2/h3/title or first link/strong
+        let address = '';
+        const titleEl = card.querySelector('h2, h3, h4, .title, .property-title, .address, [class*="address"], .property-address');
+        if (titleEl) address = titleEl.innerText.trim();
+        if (!address) {
+          // Try first <a> link inside card
+          const link = card.querySelector('a[href*="/property"], a[href*="/listing"], a[href*="/details"]');
+          if (link) address = link.innerText.trim();
         }
-      }
-    }
+        if (!address) {
+          // Fallback: look for address-like pattern in text (number + street)
+          const m = allText.match(/(\d+\s+[A-Z][\w\s]+(?:\s(?:DR|ST|AVE|LN|RD|BLVD|CT|CIR|PL|WAY|TRL|TER|SQ))[^\n]{0,40})/i);
+          if (m) address = m[1].trim();
+        }
 
-    // ── Method 3: Parse rendered HTML ─────────────────────────────────────────
-    if (results.length === 0) {
-      console.log('[HUD] Falling back to HTML parsing...');
-      const html = await page.content();
-      const cheerio = require('cheerio');
-      const $ = cheerio.load(html);
+        // Price — look for $XXX,XXX
+        const priceMatch = allText.match(/\$([\d,]+)/);
+        const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
 
-      // Try table rows first
-      const rows = $('table#dgSearchResult tr, table.SearchResults tr, .property-row, [class*="listing-row"]');
-      console.log(`[HUD] Table rows found: ${rows.length}`);
-      rows.each((i, row) => {
-        if (i === 0) return;
-        const cells = $(row).find('td');
-        if (cells.length < 4) return;
-        const linkEl  = $(cells[0]).find('a');
-        const address = linkEl.text().trim() || $(cells[0]).text().trim();
-        const city    = $(cells[1]).text().trim();
-        const state   = $(cells[2]).text().trim();
-        const zip     = $(cells[3]).text().trim();
-        const price   = parseFloat($(cells[4]).text().replace(/[^0-9.]/g, '')) || null;
-        const beds    = parseInt($(cells[5]).text()) || null;
-        const baths   = parseFloat($(cells[6]).text()) || null;
-        const listDate = $(cells[7]).text().trim();
-        const caseNum  = $(cells[8])?.text().trim();
-        const href     = linkEl.attr('href');
-        if (!address || address.length < 5) return;
-        if (state && state.toUpperCase() !== 'TX') return;
-        results.push({
-          address:    address.replace(/,\s*(TX|Texas).*/i, '').trim(),
-          city:       city || 'Dallas',
-          zip_code:   zip  || null,
-          county:     'Dallas',
-          price, bedrooms: beds, bathrooms: baths,
-          list_date:  listDate ? fmtDate(listDate) : null,
-          property_type: 'SFR', sale_type: 'REO', status: 'Active',
-          source:     'HUD Homes',
-          source_id:  caseNum || `HUD-TX-${address.replace(/\W+/g, '-').substring(0, 60)}`,
-          source_url: href
-            ? (href.startsWith('http') ? href : `https://www.hudhomestore.gov${href}`)
-            : null,
-          case_number: caseNum || null,
-          description: 'HUD Home — sold as-is. FHA financing may be available with escrow repair addendum.',
+        // Beds/baths
+        const bedMatch  = allText.match(/(\d+)\s*(?:Bed|BR|bd)\b/i);
+        const bathMatch = allText.match(/(\d+(?:\.\d+)?)\s*(?:Bath|BA|ba)\b/i);
+        const sqftMatch = allText.match(/([\d,]+)\s*(?:sq\.?\s*ft\.?|sqft|square feet)/i);
+
+        // City/zip — try aria-label or visible text
+        const cityZipMatch = allText.match(/,\s*([A-Z][A-Za-z\s]+),?\s*TX\s*(\d{5})/);
+        const city = cityZipMatch ? cityZipMatch[1].trim() : 'Dallas';
+        const zip  = cityZipMatch ? cityZipMatch[2]        : null;
+
+        // Detail link
+        const detailLink = card.querySelector('a[href*="/property"], a[href*="/listing/details"], a[href*="/details"]');
+        const sourceUrl = detailLink ? new URL(detailLink.getAttribute('href'), window.location.href).href : null;
+
+        out.push({
+          caseNumber, address, city, zip,
+          lat, lng, price,
+          beds: bedMatch ? parseInt(bedMatch[1]) : null,
+          baths: bathMatch ? parseFloat(bathMatch[1]) : null,
+          sqft: sqftMatch ? parseInt(sqftMatch[1].replace(/,/g, '')) : null,
+          sourceUrl,
         });
+      }
+      return out;
+    });
+
+    console.log(`[HUD] Extracted ${listings.length} listings from DOM`);
+
+    for (const l of listings) {
+      if (!l.address || l.address.length < 5) {
+        console.log(`[HUD] Skipping case ${l.caseNumber}: no address`);
+        continue;
+      }
+
+      results.push({
+        address:       l.address.replace(/,\s*(TX|Texas).*/i, '').trim().substring(0, 200),
+        city:          l.city || 'Dallas',
+        zip_code:      l.zip || null,
+        county:        'Dallas',
+        lat:           l.lat,
+        lng:           l.lng,
+        price:         l.price,
+        bedrooms:      l.beds,
+        bathrooms:     l.baths,
+        sqft:          l.sqft,
+        property_type: 'SFR',
+        sale_type:     'REO',
+        status:        'Active',
+        source:        'HUD Homes',
+        source_id:     `HUD-${l.caseNumber}`,
+        source_url:    l.sourceUrl || SEARCH_URL,
+        case_number:   l.caseNumber,
+        description:   'HUD Home — sold as-is. Contact listing broker for showing instructions. ' +
+                       'FHA financing may be available with escrow repair addendum.',
       });
-
-      // Try card layout
-      if (results.length === 0) {
-        $('[class*="property-card"], [class*="listing-card"], [class*="PropertyCard"], [class*="home-card"]').each((_, card) => {
-          const address = $(card).find('[class*="address" i], [class*="street" i]').first().text().trim();
-          const price   = parseFloat($(card).find('[class*="price" i]').first().text().replace(/[^0-9.]/g, '')) || null;
-          const href    = $(card).find('a').first().attr('href');
-          if (!address) return;
-          results.push({
-            address, city: 'Dallas', county: 'Dallas',
-            price, property_type: 'SFR', sale_type: 'REO', status: 'Active',
-            source: 'HUD Homes',
-            source_id: `HUD-TX-${address.replace(/\W+/g, '-').substring(0, 60)}`,
-            source_url: href
-              ? (href.startsWith('http') ? href : `https://www.hudhomestore.gov${href}`)
-              : 'https://www.hudhomestore.gov',
-            description: 'HUD Home — sold as-is.',
-          });
-        });
-      }
     }
 
     console.log(`[HUD] Returning ${results.length} properties`);
@@ -180,48 +146,6 @@ async function scrapeHUDHomes() {
   }
 
   return results;
-}
-
-function parseHudListing(l) {
-  const address =
-    l.address || l.streetAddress || l.street || l.PropertyAddress ||
-    l.Street1 || l.street1 || '';
-  if (!address || address.length < 5) return null;
-  const state = (l.state || l.State || l.stateCode || '').toUpperCase();
-  if (state && state !== 'TX') return null;
-
-  return {
-    address:       address.replace(/,\s*(TX|Texas).*/i, '').trim(),
-    city:          l.city  || l.City  || l.cityName  || 'Dallas',
-    zip_code:      l.zip   || l.Zip   || l.zipCode   || l.postalCode || null,
-    county:        'Dallas',
-    price:         parseFloat(l.price || l.listPrice || l.ListPrice || l.Price) || null,
-    bedrooms:      parseInt(l.beds || l.bedrooms || l.Bedrooms || l.BedroomCnt) || null,
-    bathrooms:     parseFloat(l.baths || l.bathrooms || l.Bathrooms || l.BathroomCnt) || null,
-    sqft:          parseInt(l.sqft || l.squareFeet || l.SquareFeet || l.LivingArea) || null,
-    year_built:    parseInt(l.yearBuilt || l.YearBuilt) || null,
-    property_type: 'SFR',
-    sale_type:     'REO',
-    status:        'Active',
-    list_date:     fmtDate(l.listDate || l.ListDate || l.listingDate),
-    source:        'HUD Homes',
-    source_id:     String(l.caseNumber || l.CaseNumber || l.id || l.propertyId || address.replace(/\W+/g,'-')).substring(0, 80),
-    source_url:    l.url
-      ? (l.url.startsWith('http') ? l.url : `https://www.hudhomestore.gov${l.url}`)
-      : 'https://www.hudhomestore.gov',
-    case_number:   l.caseNumber || l.CaseNumber || null,
-    description:   'HUD Home — sold as-is. Contact listing broker for showing instructions. ' +
-                   'FHA financing may be available with escrow repair addendum.',
-  };
-}
-
-function fmtDate(str) {
-  if (!str) return null;
-  try {
-    const d = new Date(str);
-    if (!isNaN(d)) return d.toISOString().split('T')[0];
-  } catch {}
-  return null;
 }
 
 module.exports = { scrapeHUDHomes };
