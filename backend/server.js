@@ -93,33 +93,52 @@ app.get('/api/owners/test', require('./routes/auth').requireAuth, async (req, re
     const browser = await launchBrowser();
 
     if (debug) {
-      // Raw debug: navigate, fill form, submit, dump body text
+      // Walk DCAD: search → first result → dump detail page text
       const page = await newPage(browser);
       await page.goto('https://www.dallascad.org/SearchAddr.aspx', { waitUntil: 'networkidle2', timeout: 30000 });
-      const formInputs = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('input, select')).map(el => ({
-          name: el.name, id: el.id, type: el.type, value: el.value
-        }));
-      });
       const m = address.match(/^(\d+)\s+(.+)$/);
       const streetNum = m ? m[1] : '';
-      const streetName = m ? m[2].replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail)\.?$/i,'').trim() : '';
-      // Try filling form
-      await page.evaluate((num, name) => {
-        const numEl  = document.querySelector('input[id*="StreetNum"], input[name*="StreetNum"]');
-        const nameEl = document.querySelector('input[id*="StreetName"], input[name*="StreetName"]');
-        if (numEl)  numEl.value  = num;
-        if (nameEl) nameEl.value = name;
-      }, streetNum, streetName);
-      await page.evaluate(() => {
-        const btn = document.querySelector('input[type="submit"], button[type="submit"]');
-        if (btn) btn.click();
-      });
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
-      const bodyText = await page.evaluate(() => (document.body.innerText || '').substring(0, 4000));
-      const url      = page.url();
+      const streetName = m ? m[2].replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail|Ter|Sq)\.?$/i,'').trim() : '';
+      const cityUpper = (city || '').toUpperCase().trim();
+
+      await page.click('#txtAddrNum');
+      await page.type('#txtAddrNum', streetNum, { delay: 30 });
+      await page.click('#txtStName');
+      await page.type('#txtStName', streetName, { delay: 30 });
+      if (cityUpper) {
+        await page.evaluate((cityVal) => {
+          const sel = document.getElementById('listCity');
+          if (!sel) return;
+          const opt = Array.from(sel.options).find(o => o.text.trim().toUpperCase() === cityVal);
+          if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+        }, cityUpper);
+      }
+      await Promise.all([
+        page.click('#cmdSubmit'),
+        page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+      ]);
+      const url1 = page.url();
+      const onDetail1 = url1.includes('AcctDetail') || url1.includes('acctdetail');
+      let url2 = null, detailText = null, allLinks = null;
+      if (!onDetail1) {
+        // Get links on results page
+        allLinks = await page.evaluate(() => Array.from(document.querySelectorAll('a')).map(a => ({ text: a.innerText.trim().substring(0,40), href: a.href })).filter(l => l.href && !l.href.startsWith('javascript:')).slice(0, 20));
+        const firstHref = await page.evaluate(() => {
+          const link = document.querySelector('a[href*="AcctDetail" i], a[href*="acctdetail" i]');
+          return link ? link.href : null;
+        });
+        if (firstHref) {
+          await page.goto(firstHref, { waitUntil: 'networkidle2', timeout: 30000 });
+          url2 = page.url();
+          detailText = await page.evaluate(() => (document.body.innerText || '').substring(0, 5000));
+        }
+      } else {
+        url2 = url1;
+        detailText = await page.evaluate(() => (document.body.innerText || '').substring(0, 5000));
+      }
+
       await browser.close();
-      return res.json({ address, city, streetNum, streetName, formInputs, url, bodyText });
+      return res.json({ address, city, streetNum, streetName, cityUpper, url1, url2, allLinks, detailText });
     }
 
     const dcad = await scrapeDCAD(browser, address, city);
