@@ -68,6 +68,19 @@ app.post('/api/geocode/run', require('./routes/auth').requireAuth, async (req, r
   }
 });
 
+// Cleanup malformed property rows (admin only)
+app.post('/api/admin/cleanup', require('./routes/auth').requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  // Address contains newline OR "Page " OR mostly-digit prefix (bad PDF parse)
+  const r = db.prepare(`
+    DELETE FROM properties
+     WHERE address LIKE '%' || char(10) || '%'
+        OR address LIKE '%Page %'
+        OR address GLOB '[0-9][0-9][0-9][0-9][0-9][0-9] *'
+  `).run();
+  res.json({ deleted: r.changes });
+});
+
 // Trigger owner enrichment (admin only). Pass ?retry=1 to retry failed lookups.
 app.post('/api/owners/enrich', require('./routes/auth').requireAuth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
