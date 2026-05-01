@@ -86,40 +86,55 @@ async function scrapeDCAD(browser, address, city) {
       return null;
     }
 
-    // Parse the detail page — DCAD uses table with label/value pairs
+    // Parse detail page — DCAD layout:
+    //   Owner (Current YYYY)
+    //   <Owner Name>            <- line 1
+    //   <line 2 of owner name or mail line 1>
+    //   <mail line 2>
+    //   <mail line 3 — city/state/zip>
+    //   <blank>
+    //   Multi-Owner (Current YYYY)
     const detail = await page.evaluate(() => {
-      // Owner Name and Mailing Address are in <td>s with specific labels
-      // We scan all rows for the labels and grab the next/adjacent cell content
-      const rows = Array.from(document.querySelectorAll('tr'));
-      let ownerName = null, mailingAddr = null;
+      const text = document.body.innerText || '';
+      const lines = text.split('\n').map(l => l.trim());
 
-      for (const row of rows) {
-        const cells = Array.from(row.querySelectorAll('td'));
-        for (let i = 0; i < cells.length; i++) {
-          const labelText = (cells[i].innerText || '').trim();
-          if (/^Owner( Name)?:?$/i.test(labelText) && cells[i + 1]) {
-            const val = (cells[i + 1].innerText || '').trim();
-            if (val && val.length > 2 && val.length < 150) ownerName = val;
-          }
-          if (/^Mailing Address:?$/i.test(labelText) && cells[i + 1]) {
-            const val = (cells[i + 1].innerText || '').trim();
-            if (val && val.length > 5) mailingAddr = val;
-          }
+      let startIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (/^Owner\s*\(Current\s+\d{4}\)$/i.test(lines[i])) { startIdx = i + 1; break; }
+      }
+      if (startIdx === -1) return { ownerName: null, mailingAddr: null };
+
+      // Collect non-empty lines until a blank line OR until we hit a known section heading
+      const stopRe = /^(Multi-Owner|Legal Desc|Value|Main Improvement|Additional Improvements|Land|Exemptions|Estimated Taxes|History|Property Location)/i;
+      const block = [];
+      for (let i = startIdx; i < lines.length && i < startIdx + 20; i++) {
+        const l = lines[i];
+        if (!l) {
+          if (block.length > 0) break;   // blank line = end of block
+          continue;                      // skip leading blanks
+        }
+        if (stopRe.test(l)) break;
+        block.push(l);
+      }
+      if (block.length === 0) return { ownerName: null, mailingAddr: null };
+
+      // First line is owner name. Detect if 2nd line is part of owner name
+      // (e.g., "CWABS INC ASSETBACKED / CERTIFICATES SERIES 2006-22") vs. mailing.
+      // Mailing address typically starts with a number or "PO BOX" / "P.O. BOX".
+      const looksLikeStreetOrPO = (s) => /^(\d|PO\s+BOX|P\.?O\.?\s+BOX)/i.test(s);
+
+      let ownerLines = [block[0]];
+      let mailLines  = [];
+      for (let i = 1; i < block.length; i++) {
+        if (looksLikeStreetOrPO(block[i]) || mailLines.length > 0) {
+          mailLines.push(block[i]);
+        } else {
+          ownerLines.push(block[i]);
         }
       }
 
-      // Fallback: text-based regex on visible content (more loose)
-      if (!ownerName) {
-        const text = document.body.innerText || '';
-        const m = text.match(/Owner( Name)?:?\s*\n\s*([A-Z][^\n]{2,100})/);
-        if (m) ownerName = m[2].trim();
-      }
-      if (!mailingAddr) {
-        const text = document.body.innerText || '';
-        const m = text.match(/Mailing Address:?\s*\n\s*([^\n]+(?:\n[^\n]{3,80}){0,2})/);
-        if (m) mailingAddr = m[1].trim().replace(/\n/g, ', ');
-      }
-
+      const ownerName  = ownerLines.join(' ').trim();
+      const mailingAddr = mailLines.length ? mailLines.join(', ').trim() : null;
       return { ownerName, mailingAddr, url: window.location.href };
     });
 
