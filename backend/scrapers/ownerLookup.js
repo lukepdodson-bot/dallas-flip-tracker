@@ -30,7 +30,20 @@ async function scrapeDCAD(browser, address, city) {
     const m = address.match(/^(\d+)\s+(.+)$/);
     if (!m) return null;
     const streetNum  = m[1];
-    const streetName = m[2]
+    let rest = m[2];
+
+    // Pull leading direction prefix (N/S/E/W/NE/NW/SE/SW)
+    let direction = '';
+    const dirMatch = rest.match(/^(N|S|E|W|NE|NW|SE|SW)\s+(.+)$/i);
+    if (dirMatch) {
+      direction = dirMatch[1].toUpperCase();
+      rest = dirMatch[2];
+    }
+
+    // Strip trailing unit/suite/apartment qualifiers
+    rest = rest.replace(/\s+(Unit|Apt|Ste|Suite|#)\s*[\w-]+\s*$/i, '');
+
+    const streetName = rest
       .replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail|Ter|Terrace|Sq|Square)\.?$/i, '')
       .trim();
     const cityUpper = (city || '').toUpperCase().trim();
@@ -40,6 +53,16 @@ async function scrapeDCAD(browser, address, city) {
     await page.type('#txtAddrNum', streetNum, { delay: 30 });
     await page.click('#txtStName');
     await page.type('#txtStName', streetName, { delay: 30 });
+
+    // Set direction dropdown if present
+    if (direction) {
+      await page.evaluate((dir) => {
+        const sel = document.getElementById('listStDir');
+        if (!sel) return;
+        const opt = Array.from(sel.options).find(o => o.text.trim().toUpperCase() === dir);
+        if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event('change', { bubbles: true })); }
+      }, direction);
+    }
 
     // Select city in dropdown if known
     if (cityUpper) {
