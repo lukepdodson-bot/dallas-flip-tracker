@@ -114,6 +114,31 @@ export default function PropertyDetail() {
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">{property.address}</h1>
                 <p className="text-gray-500">{property.city}, TX {property.zip_code} &bull; {property.county} County</p>
+
+                {/* Owner info — public record from DCAD + skip trace */}
+                {(property.owner_name || property.owner_mailing_address || property.owner_phone || property.owner_email) && (
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+                    <p className="font-semibold text-amber-900 mb-1">Owner of Record</p>
+                    {property.owner_name && (
+                      <p className="text-amber-900"><span className="text-amber-700">Name:</span> {property.owner_name}</p>
+                    )}
+                    {property.owner_mailing_address && property.owner_mailing_address !== `${property.address}, ${property.city}, TX ${property.zip_code || ''}`.trim() && (
+                      <p className="text-amber-900"><span className="text-amber-700">Mailing:</span> {property.owner_mailing_address}</p>
+                    )}
+                    {property.owner_phone && (
+                      <p className="text-amber-900">
+                        <span className="text-amber-700">Phone:</span>{' '}
+                        <a href={`tel:${property.owner_phone}`} className="underline hover:text-amber-700">{property.owner_phone}</a>
+                      </p>
+                    )}
+                    {property.owner_email && (
+                      <p className="text-amber-900">
+                        <span className="text-amber-700">Email:</span>{' '}
+                        <a href={`mailto:${property.owner_email}`} className="underline hover:text-amber-700">{property.owner_email}</a>
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Save button */}

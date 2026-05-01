@@ -140,6 +140,19 @@ async function initDB() {
     'CREATE INDEX IF NOT EXISTS idx_p_ld   ON properties(list_date)',
   ].forEach(s => sqliteDb.run(s));
 
+  // ── Migrations: add owner columns to existing tables (idempotent) ───────────
+  const ownerCols = [
+    ['owner_name',             'TEXT'],
+    ['owner_mailing_address',  'TEXT'],
+    ['owner_phone',            'TEXT'],
+    ['owner_email',            'TEXT'],
+    ['owner_lookup_attempted', 'TEXT'],   // ISO date of last lookup attempt
+  ];
+  for (const [col, type] of ownerCols) {
+    try { sqliteDb.run(`ALTER TABLE properties ADD COLUMN ${col} ${type}`); }
+    catch { /* column already exists */ }
+  }
+
   persist();
   return db;
 }

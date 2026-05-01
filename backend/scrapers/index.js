@@ -8,6 +8,7 @@ const { scrapeDallasCountyForeclosures } = require('./dallasCountyClerk');
 const { scrapeAuctionDotCom }          = require('./auctionDotCom');
 const { scrapeXome }                   = require('./xome');
 const { geocodeUngeocodedProperties }  = require('./geocoder');
+const { enrichOwners }                 = require('./ownerLookup');
 
 // NOTE: uses :param syntax (not @param) — matches the sql.js wrapper's bindParams()
 const upsertProperty = db.prepare(`
@@ -124,6 +125,14 @@ async function runAllScrapers() {
 
   console.log('\nGeocoding new properties…');
   await geocodeUngeocodedProperties(db);
+
+  console.log('\nLooking up owner info (DCAD + skip-trace)…');
+  try {
+    await enrichOwners(db, { limit: 100, includePhone: true });
+  } catch (e) {
+    console.error('Owner enrichment error:', e.message);
+  }
+
   console.log('Scrape complete.');
 }
 

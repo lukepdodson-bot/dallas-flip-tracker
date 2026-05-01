@@ -68,6 +68,38 @@ app.post('/api/geocode/run', require('./routes/auth').requireAuth, async (req, r
   }
 });
 
+// Trigger owner enrichment (admin only)
+app.post('/api/owners/enrich', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { enrichOwners } = require('./scrapers/ownerLookup');
+    const before = db.prepare("SELECT COUNT(*) as c FROM properties WHERE owner_name IS NULL OR owner_name = ''").get();
+    res.json({ message: 'Owner enrichment started', missingOwnersBefore: before.c });
+    enrichOwners(db, { limit: 100, includePhone: true }).catch(console.error);
+  } catch (e) {
+    res.json({ error: e.message });
+  }
+});
+
+// Test DCAD lookup for one address (admin only)
+app.get('/api/owners/test', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { launchBrowser } = require('./scrapers/browser');
+    const { scrapeDCAD, skipTracePhone } = require('./scrapers/ownerLookup');
+    const address = req.query.address || '549 Sharp Dr';
+    const city    = req.query.city    || 'DeSoto';
+    const browser = await launchBrowser();
+    const dcad = await scrapeDCAD(browser, address, city);
+    let phone = null;
+    if (dcad?.owner_name) phone = await skipTracePhone(browser, dcad.owner_name, city);
+    await browser.close();
+    res.json({ address, city, dcad, phone });
+  } catch (e) {
+    res.json({ error: e.message.substring(0, 500) });
+  }
+});
+
 // Test single geocode (admin only) — diagnostic
 app.get('/api/geocode/test', require('./routes/auth').requireAuth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
