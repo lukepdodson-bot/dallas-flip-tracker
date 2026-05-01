@@ -27,86 +27,110 @@ async function scrapeDCAD(browser, address, city) {
       timeout: 30000,
     });
 
-    // Fill in street number + street name from address
-    // DCAD takes street-number and street-name separately
     const m = address.match(/^(\d+)\s+(.+)$/);
     if (!m) return null;
     const streetNum  = m[1];
     const streetName = m[2]
-      .replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail)\.?$/i, '')
+      .replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail|Ter|Terrace|Sq|Square)\.?$/i, '')
       .trim();
+    const cityUpper = (city || '').toUpperCase().trim();
 
-    await page.evaluate((num, name) => {
-      const numEl  = document.querySelector('input[id*="StreetNum"], input[name*="StreetNum"]');
-      const nameEl = document.querySelector('input[id*="StreetName"], input[name*="StreetName"]');
-      if (numEl)  numEl.value  = num;
-      if (nameEl) nameEl.value = name;
-    }, streetNum, streetName);
+    // Type into fields properly so ASP.NET sees the values
+    await page.click('#txtAddrNum');
+    await page.type('#txtAddrNum', streetNum, { delay: 30 });
+    await page.click('#txtStName');
+    await page.type('#txtStName', streetName, { delay: 30 });
 
-    // Submit the form
-    const submitted = await page.evaluate(() => {
-      const btn = document.querySelector('input[type="submit"], button[type="submit"]');
-      if (btn) { btn.click(); return true; }
-      return false;
-    });
-    if (!submitted) return null;
+    // Select city in dropdown if known
+    if (cityUpper) {
+      try {
+        const matched = await page.evaluate((cityVal) => {
+          const sel = document.getElementById('listCity');
+          if (!sel) return false;
+          const opts = Array.from(sel.options);
+          // Match option by visible text (DCAD pads with spaces)
+          const opt = opts.find(o => o.text.trim().toUpperCase() === cityVal);
+          if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event('change', { bubbles: true })); return true; }
+          return false;
+        }, cityUpper);
+        if (!matched) console.log(`[DCAD] City "${cityUpper}" not in dropdown`);
+      } catch {}
+    }
 
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
+    // Submit and wait
+    await Promise.all([
+      page.click('#cmdSubmit'),
+      page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {}),
+    ]);
 
-    // Parse results: DCAD returns either an account-detail page or a list of matches
-    const result = await page.evaluate(() => {
-      // Account detail page has owner info in a <table> or <tr> structure
-      const text = document.body.innerText || '';
+    // Check current URL — we should now be on a results or detail page
+    const url1 = page.url();
+    console.log(`[DCAD] After submit: ${url1}`);
 
-      // Match "Owner Name" followed by name (DCAD layout: label / value pairs in rows)
-      const ownerMatch = text.match(/Owner Name\s*[:\n]+\s*([^\n]{2,80})/i)
-                     || text.match(/Owner\s*[:\n]+\s*([^\n]{2,80})/i);
-
-      // Mailing address pattern: "Mailing Address" then 1-3 lines of address
-      const mailMatch = text.match(/Mailing Address\s*[:\n]+\s*([^\n]+(?:\n[^\n]+){0,2})/i);
-
-      // If we got a list of results, take the first link and follow
-      const firstLink = document.querySelector('a[href*="AcctDetail"], a[href*="acctdetail"]');
-
-      return {
-        ownerName:    ownerMatch ? ownerMatch[1].trim() : null,
-        mailingAddr:  mailMatch  ? mailMatch[1].trim().replace(/\n/g, ', ') : null,
-        firstLinkHref: firstLink ? firstLink.getAttribute('href') : null,
-        title:         document.title,
-        url:           window.location.href,
-      };
-    });
-
-    // If we got results-list, follow first link
-    if (!result.ownerName && result.firstLinkHref) {
-      const detailUrl = new URL(result.firstLinkHref, page.url()).toString();
-      console.log(`[DCAD] Following result: ${detailUrl}`);
-      await page.goto(detailUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-      const detail = await page.evaluate(() => {
-        const text = document.body.innerText || '';
-        const ownerMatch = text.match(/Owner Name\s*[:\n]+\s*([^\n]{2,80})/i)
-                       || text.match(/Owner\s*[:\n]+\s*([^\n]{2,80})/i);
-        const mailMatch  = text.match(/Mailing Address\s*[:\n]+\s*([^\n]+(?:\n[^\n]+){0,2})/i);
-        return {
-          ownerName:   ownerMatch ? ownerMatch[1].trim() : null,
-          mailingAddr: mailMatch  ? mailMatch[1].trim().replace(/\n/g, ', ') : null,
-        };
+    // If we landed on a list of accounts, click the first one
+    let onDetailPage = url1.includes('AcctDetail') || url1.includes('acctdetail');
+    if (!onDetailPage) {
+      const firstHref = await page.evaluate(() => {
+        const link = document.querySelector('a[href*="AcctDetail" i], a[href*="acctdetail" i]');
+        return link ? link.href : null;
       });
-      if (detail.ownerName) {
-        return {
-          owner_name:            cleanName(detail.ownerName),
-          owner_mailing_address: cleanAddr(detail.mailingAddr),
-        };
+      if (firstHref) {
+        console.log(`[DCAD] Following result link: ${firstHref}`);
+        await page.goto(firstHref, { waitUntil: 'networkidle2', timeout: 30000 });
+        onDetailPage = true;
       }
     }
 
-    if (result.ownerName) {
+    if (!onDetailPage) {
+      console.log(`[DCAD] No result page reached for ${address}`);
+      return null;
+    }
+
+    // Parse the detail page — DCAD uses table with label/value pairs
+    const detail = await page.evaluate(() => {
+      // Owner Name and Mailing Address are in <td>s with specific labels
+      // We scan all rows for the labels and grab the next/adjacent cell content
+      const rows = Array.from(document.querySelectorAll('tr'));
+      let ownerName = null, mailingAddr = null;
+
+      for (const row of rows) {
+        const cells = Array.from(row.querySelectorAll('td'));
+        for (let i = 0; i < cells.length; i++) {
+          const labelText = (cells[i].innerText || '').trim();
+          if (/^Owner( Name)?:?$/i.test(labelText) && cells[i + 1]) {
+            const val = (cells[i + 1].innerText || '').trim();
+            if (val && val.length > 2 && val.length < 150) ownerName = val;
+          }
+          if (/^Mailing Address:?$/i.test(labelText) && cells[i + 1]) {
+            const val = (cells[i + 1].innerText || '').trim();
+            if (val && val.length > 5) mailingAddr = val;
+          }
+        }
+      }
+
+      // Fallback: text-based regex on visible content (more loose)
+      if (!ownerName) {
+        const text = document.body.innerText || '';
+        const m = text.match(/Owner( Name)?:?\s*\n\s*([A-Z][^\n]{2,100})/);
+        if (m) ownerName = m[2].trim();
+      }
+      if (!mailingAddr) {
+        const text = document.body.innerText || '';
+        const m = text.match(/Mailing Address:?\s*\n\s*([^\n]+(?:\n[^\n]{3,80}){0,2})/);
+        if (m) mailingAddr = m[1].trim().replace(/\n/g, ', ');
+      }
+
+      return { ownerName, mailingAddr, url: window.location.href };
+    });
+
+    console.log(`[DCAD] Parsed: name="${detail.ownerName}" mail="${(detail.mailingAddr||'').substring(0, 60)}"`);
+
+    if (detail.ownerName) {
       return {
-        owner_name:            cleanName(result.ownerName),
-        owner_mailing_address: cleanAddr(result.mailingAddr),
+        owner_name:            cleanName(detail.ownerName),
+        owner_mailing_address: cleanAddr(detail.mailingAddr),
       };
     }
-    console.log(`[DCAD] No match for ${address}`);
     return null;
   } catch (e) {
     console.error(`[DCAD] Error for "${address}":`, e.message.split('\n')[0]);
