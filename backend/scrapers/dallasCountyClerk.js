@@ -158,23 +158,29 @@ function parseNoticesFromText(text, filename) {
     // Property address — usually under "Property Address:" or as a standalone line
     let address = null, city = null, zip = null;
 
-    // Try labeled patterns first
-    const addrLabelRe = /(?:Property Address|Address of Property|Mortgaged Property Address|Property Location)[:\s]+([^\n]+(?:\n[^\n]{3,80})?)/i;
-    const m1 = block.match(addrLabelRe);
-    if (m1) {
-      const raw = m1[1].replace(/\s+/g, ' ').trim();
-      const m2  = raw.match(/^(.+?),?\s+([A-Z][A-Za-z\s]+),?\s+(?:TX|Texas)\.?\s+(\d{5})/i);
-      if (m2) { address = m2[1].trim(); city = m2[2].trim(); zip = m2[3]; }
-      else address = raw.split(',')[0].trim();
+    // Strict pattern: full street+city+TX+zip line. Most reliable.
+    const fullAddrRe = /(\d{1,6}\s+(?:[NSEW]\.?\s+)?[A-Z][\w.\s]{2,40}?(?:DR|DRIVE|ST|STREET|AVE|AVENUE|LN|LANE|RD|ROAD|BLVD|BOULEVARD|CT|COURT|CIR|CIRCLE|PL|PLACE|WAY|PARKWAY|PKWY|TRL|TRAIL|TER|TERRACE|HWY|HIGHWAY|SQ|SQUARE)\.?)\,?\s+([A-Z][A-Za-z\s.]+?),?\s+(?:TX|Texas)\.?\s*(\d{5})/i;
+    const fullM = block.match(fullAddrRe);
+    if (fullM) {
+      address = fullM[1].replace(/\s+/g, ' ').trim();
+      city    = fullM[2].replace(/\s+/g, ' ').trim();
+      zip     = fullM[3];
     }
 
-    // Fallback: find first line matching "<number> <street>, <city>, TX <zip>"
+    // Fallback: labeled "Property Address:" line
     if (!address) {
-      const m = block.match(/(\d{1,6}\s+[NSEW]?\s*[\w\s]+(?:DR|DRIVE|ST|STREET|AVE|AVENUE|LN|LANE|RD|ROAD|BLVD|BOULEVARD|CT|COURT|CIR|CIRCLE|PL|PLACE|WAY|PKWY|TRL|TRAIL|TER|HWY|HIGHWAY)\.?)\,?\s+([A-Z][A-Za-z\s]+),?\s+(?:TX|Texas)\.?\s*(\d{5})/i);
-      if (m) { address = m[1].trim(); city = m[2].trim(); zip = m[3]; }
+      const m1 = block.match(/(?:Property Address|Address of Property|Mortgaged Property Address|Property Location)[:\s]+([^\n]+(?:\n[^\n]{3,80})?)/i);
+      if (m1) {
+        const raw = m1[1].replace(/\s+/g, ' ').trim();
+        const m2  = raw.match(/^(.+?),\s+([A-Z][A-Za-z\s.]+),?\s+(?:TX|Texas)\.?\s+(\d{5})/i);
+        if (m2) { address = m2[1].trim(); city = m2[2].trim(); zip = m2[3]; }
+        else { address = raw.split(',')[0].trim(); }
+      }
     }
 
     if (!address || address.length < 5) continue;
+    // Reject if address is mostly digits (PDF page numbers/instrument numbers got grabbed)
+    if (/^\d{4,}\s*$/.test(address) || (address.match(/\d/g) || []).length > address.length * 0.6) continue;
 
     // Sale date — in MM/DD/YYYY or "Date of Sale: ..."
     let saleDate = null;

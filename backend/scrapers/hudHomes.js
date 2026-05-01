@@ -115,8 +115,15 @@ async function scrapeHUDHomes() {
         continue;
       }
 
+      // Clean address: take only the first line (strip embedded city/state)
+      const cleanAddress = l.address
+        .split(/\r?\n/)[0]
+        .replace(/,\s*(TX|Texas).*/i, '')
+        .trim()
+        .substring(0, 200);
+
       results.push({
-        address:       l.address.replace(/,\s*(TX|Texas).*/i, '').trim().substring(0, 200),
+        address:       cleanAddress,
         city:          l.city || 'Dallas',
         zip_code:      l.zip || null,
         county:        'Dallas',
