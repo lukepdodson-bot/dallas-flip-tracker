@@ -155,6 +155,49 @@ app.get('/api/owners/test', require('./routes/auth').requireAuth, async (req, re
   }
 });
 
+// Test HUD search submission and capture API response (admin only) — diagnostic
+app.get('/api/hud/probe', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { launchBrowser, newPage } = require('./scrapers/browser');
+    const browser = await launchBrowser();
+    const page = await newPage(browser);
+
+    const apiHits = [];
+    page.on('response', async resp => {
+      try {
+        const url = resp.url();
+        const ct  = resp.headers()['content-type'] || '';
+        if (!ct.includes('json')) return;
+        if (!url.includes('hudhomestore')) return;
+        const data = await resp.json().catch(() => null);
+        if (data) {
+          apiHits.push({
+            url: url.split('?')[0],
+            fullUrl: url.length < 300 ? url : url.substring(0, 300),
+            keys: Object.keys(data).slice(0, 10),
+            sample: JSON.stringify(data).substring(0, 800),
+          });
+        }
+      } catch {}
+    });
+
+    await page.goto('https://www.hudhomestore.gov/', { waitUntil: 'networkidle2', timeout: 30000 });
+    // Type "Dallas, TX" in search and press Enter
+    await page.click('#cityStateZip').catch(()=>{});
+    await page.type('#cityStateZip', 'Dallas, TX', { delay: 60 }).catch(()=>{});
+    await new Promise(r => setTimeout(r, 1500));
+    await page.keyboard.press('Enter').catch(()=>{});
+    await new Promise(r => setTimeout(r, 6000)); // wait for results
+    const finalUrl = page.url();
+
+    await browser.close();
+    res.json({ finalUrl, apiHits });
+  } catch (e) {
+    res.json({ error: e.message.substring(0, 500) });
+  }
+});
+
 // Test single geocode (admin only) — diagnostic
 app.get('/api/geocode/test', require('./routes/auth').requireAuth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
