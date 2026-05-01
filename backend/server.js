@@ -85,11 +85,43 @@ app.post('/api/owners/enrich', require('./routes/auth').requireAuth, async (req,
 app.get('/api/owners/test', require('./routes/auth').requireAuth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
   try {
-    const { launchBrowser } = require('./scrapers/browser');
+    const { launchBrowser, newPage } = require('./scrapers/browser');
     const { scrapeDCAD, skipTracePhone } = require('./scrapers/ownerLookup');
     const address = req.query.address || '549 Sharp Dr';
     const city    = req.query.city    || 'DeSoto';
+    const debug   = req.query.debug   === '1';
     const browser = await launchBrowser();
+
+    if (debug) {
+      // Raw debug: navigate, fill form, submit, dump body text
+      const page = await newPage(browser);
+      await page.goto('https://www.dallascad.org/SearchAddr.aspx', { waitUntil: 'networkidle2', timeout: 30000 });
+      const formInputs = await page.evaluate(() => {
+        return Array.from(document.querySelectorAll('input, select')).map(el => ({
+          name: el.name, id: el.id, type: el.type, value: el.value
+        }));
+      });
+      const m = address.match(/^(\d+)\s+(.+)$/);
+      const streetNum = m ? m[1] : '';
+      const streetName = m ? m[2].replace(/\s+(Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail)\.?$/i,'').trim() : '';
+      // Try filling form
+      await page.evaluate((num, name) => {
+        const numEl  = document.querySelector('input[id*="StreetNum"], input[name*="StreetNum"]');
+        const nameEl = document.querySelector('input[id*="StreetName"], input[name*="StreetName"]');
+        if (numEl)  numEl.value  = num;
+        if (nameEl) nameEl.value = name;
+      }, streetNum, streetName);
+      await page.evaluate(() => {
+        const btn = document.querySelector('input[type="submit"], button[type="submit"]');
+        if (btn) btn.click();
+      });
+      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
+      const bodyText = await page.evaluate(() => (document.body.innerText || '').substring(0, 4000));
+      const url      = page.url();
+      await browser.close();
+      return res.json({ address, city, streetNum, streetName, formInputs, url, bodyText });
+    }
+
     const dcad = await scrapeDCAD(browser, address, city);
     let phone = null;
     if (dcad?.owner_name) phone = await skipTracePhone(browser, dcad.owner_name, city);
