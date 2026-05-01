@@ -68,11 +68,15 @@ app.post('/api/geocode/run', require('./routes/auth').requireAuth, async (req, r
   }
 });
 
-// Trigger owner enrichment (admin only)
+// Trigger owner enrichment (admin only). Pass ?retry=1 to retry failed lookups.
 app.post('/api/owners/enrich', require('./routes/auth').requireAuth, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
   try {
     const { enrichOwners } = require('./scrapers/ownerLookup');
+    if (req.query.retry === '1') {
+      const r = db.prepare("UPDATE properties SET owner_lookup_attempted=NULL WHERE owner_name IS NULL OR owner_name=''").run();
+      console.log(`[Owners] Reset ${r.changes} attempt flags for retry`);
+    }
     const before = db.prepare("SELECT COUNT(*) as c FROM properties WHERE owner_name IS NULL OR owner_name = ''").get();
     res.json({ message: 'Owner enrichment started', missingOwnersBefore: before.c });
     enrichOwners(db, { limit: 100, includePhone: true }).catch(console.error);
