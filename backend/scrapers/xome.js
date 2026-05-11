@@ -1,14 +1,14 @@
 /**
- * Xome.com Scraper — Dallas County, TX
+ * Xome.com Scraper — multi-county.
  *
  * Xome lists bank-owned (REO) and pre-foreclosure auction properties.
- * The page serves HTML with <address> tags containing property links.
- * URL pattern: /auctions/{street-slug}-{city}-{state}-{zip}-{propId}
+ * URL pattern: /auctions/listing/TX/{County}
+ * Property links: /auctions/{street-slug}-{city}-{state}-{zip}-{propId}
  */
 const cheerio = require('cheerio');
 const { launchBrowser, newPage } = require('./browser');
+const COUNTIES = require('./counties');
 
-const BASE_URL   = 'https://www.xome.com/auctions/listing/TX/Dallas';
 const HOST       = 'https://www.xome.com';
 const MAX_PAGES  = 3;
 
@@ -20,49 +20,49 @@ async function scrapeXome() {
   try {
     browser = await launchBrowser();
 
-    for (let pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
-      const url  = pageNum === 1 ? BASE_URL : `${BASE_URL}?pg=${pageNum}`;
-      const page = await newPage(browser);
+    for (const cfg of Object.values(COUNTIES)) {
+      const base = `${HOST}/auctions/listing/TX/${cfg.xomeSlug}`;
+      console.log(`\n[Xome] === ${cfg.name} County ===`);
 
-      console.log(`[Xome] Page ${pageNum}: ${url}`);
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-      await page.humanDelay();
+      for (let pageNum = 1; pageNum <= MAX_PAGES; pageNum++) {
+        const url  = pageNum === 1 ? base : `${base}?pg=${pageNum}`;
+        const page = await newPage(browser);
 
-      const title = await page.title();
-      console.log(`[Xome] p${pageNum} title: ${title}`);
+        console.log(`[Xome] ${cfg.name} p${pageNum}: ${url}`);
+        await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+        await page.humanDelay();
 
-      const html = await page.content();
-      await page.close().catch(() => {});
+        const title = await page.title();
+        console.log(`[Xome] ${cfg.name} p${pageNum} title: ${title}`);
 
-      const $ = cheerio.load(html);
+        const html = await page.content();
+        await page.close().catch(() => {});
 
-      // Count cards on this page
-      const addressLinks = $('address a.address-linktext, address a[href*="/auctions/"]');
-      console.log(`[Xome] p${pageNum} address links found: ${addressLinks.length}`);
+        const $ = cheerio.load(html);
 
-      if (addressLinks.length === 0) {
-        // Try to find any property link patterns
-        const allLinks = $('a[href*="/auctions/"][href*="-TX-"]');
-        console.log(`[Xome] p${pageNum} TX links: ${allLinks.length}`);
-        if (allLinks.length === 0) {
-          console.log(`[Xome] No properties on page ${pageNum}, stopping`);
+        const addressLinks = $('address a.address-linktext, address a[href*="/auctions/"]');
+        let processedAny = false;
+        if (addressLinks.length > 0) {
+          addressLinks.each((_, el) => {
+            const added = processLink($, el, results, seenIds, cfg);
+            if (added) processedAny = true;
+          });
+        } else {
+          const allLinks = $('a[href*="/auctions/"][href*="-TX-"]');
+          allLinks.each((_, el) => {
+            const added = processLink($, el, results, seenIds, cfg);
+            if (added) processedAny = true;
+          });
+        }
+
+        if (!processedAny) {
+          console.log(`[Xome] ${cfg.name} no properties on p${pageNum}, stopping`);
           break;
         }
-        // Use these links as fallback
-        allLinks.each((_, el) => processLink($, el, results, seenIds));
-      } else {
-        addressLinks.each((_, el) => processLink($, el, results, seenIds));
-      }
-
-      // Check for next page
-      const nextBtn = $('a[rel="next"], a.pagination-next, [class*="next-page"], li.next a');
-      if (nextBtn.length === 0) {
-        console.log(`[Xome] No next page button found, stopping at page ${pageNum}`);
-        break;
       }
     }
 
-    console.log(`[Xome] Total: ${results.length} properties`);
+    console.log(`\n[Xome] Total across all counties: ${results.length}`);
   } catch (err) {
     console.error('[Xome] Scrape error:', err.message);
   } finally {
@@ -72,36 +72,30 @@ async function scrapeXome() {
   return results;
 }
 
-function processLink($, el, results, seenIds) {
+function processLink($, el, results, seenIds, cfg) {
   const href = $(el).attr('href') || '';
-  if (!href || !href.includes('/auctions/')) return;
+  if (!href || !href.includes('/auctions/')) return false;
 
-  // Parse URL: /auctions/3883-Turtle-Crk-Blvd-Unit1408-Dallas-TX-75219-411847186
   const slugMatch = href.match(/\/auctions\/(.+?)-TX-(\d{5})-(\d+)$/i);
-  if (!slugMatch) return;
+  if (!slugMatch) return false;
 
-  const slug     = slugMatch[1]; // e.g. "3883-Turtle-Crk-Blvd-Unit1408-Dallas"
-  const zip      = slugMatch[2]; // e.g. "75219"
-  const propId   = slugMatch[3]; // e.g. "411847186"
+  const slug   = slugMatch[1];
+  const zip    = slugMatch[2];
+  const propId = slugMatch[3];
 
-  if (seenIds.has(propId)) return;
+  if (seenIds.has(propId)) return false;
   seenIds.add(propId);
 
-  // Split slug into address + city
-  // Pattern: street-address-CITY (city is usually last word(s) before TX)
-  const { address, city } = parseSlug(slug);
+  const { address, city } = parseSlug(slug, cfg);
 
-  // Find the parent card to extract price, beds, baths, date
   const card = $(el).closest('[class*="property"], [class*="listing"], [class*="auction"], article, li, .card, .tile')
     || $(el).parents('div').eq(3);
 
   const cardText = card.text() || $(el).parents('div').eq(4).text() || '';
 
-  // Price
   const priceMatch = cardText.match(/\$[\d,]+/);
   const price = priceMatch ? parseFloat(priceMatch[0].replace(/[^0-9.]/g, '')) : null;
 
-  // Beds/Baths
   const bedsMatch  = cardText.match(/(\d+)\s*(?:bed|bd|br)/i);
   const bathsMatch = cardText.match(/(\d+(?:\.\d)?)\s*(?:bath|ba)/i);
   const sqftMatch  = cardText.match(/([\d,]+)\s*(?:sq\.?\s*ft|sqft)/i);
@@ -109,25 +103,23 @@ function processLink($, el, results, seenIds) {
   const baths = bathsMatch ? parseFloat(bathsMatch[1]) : null;
   const sqft  = sqftMatch  ? parseInt(sqftMatch[1].replace(',', '')) : null;
 
-  // Auction date
   const dateEl = card.find('.auction-date, [class*="auction-date"], [class*="date"]').first();
   const dateText = dateEl.text().trim();
   const auctionDate = fmtDate(dateText);
 
-  // Sale type from status
   const statusEl = card.find('.auction-status, [class*="status"]').first();
   const statusText = (statusEl.text() || cardText).toLowerCase();
   const saleType = statusText.includes('reo') || statusText.includes('bank') ? 'REO'
     : statusText.includes('short') ? 'Short Sale'
     : 'Foreclosure';
 
-  if (!address || address.length < 3) return;
+  if (!address || address.length < 3) return false;
 
   results.push({
     address,
-    city:          city || 'Dallas',
+    city:          city || (cfg.cities[0] || 'Dallas'),
     zip_code:      zip  || null,
-    county:        'Dallas',
+    county:        cfg.name,
     price,
     bedrooms:      beds,
     bathrooms:     baths,
@@ -140,32 +132,25 @@ function processLink($, el, results, seenIds) {
     source:        'Xome',
     source_id:     `XOME-${propId}`,
     source_url:    href.startsWith('http') ? href : `${HOST}${href}`,
-    description:   `Xome auction property in ${city || 'Dallas'}, TX. ${saleType}. Register to bid at xome.com.`,
+    description:   `Xome auction property in ${city || cfg.cities[0]}, TX. ${saleType}. Register to bid at xome.com.`,
   });
+  return true;
 }
 
-// Known multi-word Dallas-area cities
-const MULTI_CITIES = [
-  'Grand Prairie', 'Balch Springs', 'Oak Leaf', 'Farmers Branch',
-  'Cedar Hill', 'Glenn Heights', 'Cockrell Hill', 'University Park',
-  'Highland Park',
-];
-
-function parseSlug(slug) {
-  // slug: "3883-Turtle-Crk-Blvd-Unit1408-Dallas" or "618-Royal-Ave-Grand-Prairie"
+function parseSlug(slug, cfg) {
   const parts = slug.split('-');
+  const slugLow = slug.toLowerCase();
 
   // Try multi-word cities first
-  for (const mc of MULTI_CITIES) {
-    const mcParts = mc.toLowerCase().split(' ');
-    const mcSlug  = mcParts.join('-');
-    const noState = slug.toLowerCase();
-    if (noState.endsWith('-' + mcSlug)) {
-      const city    = mc;
+  for (const mc of cfg.cities) {
+    const mcParts = mc.toLowerCase().split(/\s+/);
+    if (mcParts.length < 2) continue;
+    const mcSlug = mcParts.join('-');
+    if (slugLow.endsWith('-' + mcSlug)) {
       const addrParts = parts.slice(0, parts.length - mcParts.length);
       return {
         address: toTitleCase(addrParts.join(' ')),
-        city,
+        city:    mc,
       };
     }
   }

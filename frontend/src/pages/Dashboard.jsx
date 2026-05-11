@@ -11,6 +11,7 @@ const DEFAULT_FILTERS = {
   property_types: [],
   zip_codes: [],
   cities: [],
+  counties: [],
   min_price: '',
   max_price: '',
   min_beds: '',
@@ -34,6 +35,7 @@ function buildParams(filters, page) {
   if (filters.property_types?.length) p.set('property_type', filters.property_types.join(','));
   if (filters.zip_codes?.length)     p.set('zip_code', filters.zip_codes.join(','));
   if (filters.cities?.length)        p.set('city', filters.cities.join(','));
+  if (filters.counties?.length)      p.set('county', filters.counties.join(','));
   if (filters.min_price)  p.set('min_price', filters.min_price);
   if (filters.max_price)  p.set('max_price', filters.max_price);
   if (filters.min_beds)   p.set('min_beds', filters.min_beds);
@@ -69,10 +71,11 @@ export default function Dashboard() {
   });
 
   // All map markers (separate query, no pagination)
-  const mapQuery = buildParams(filters, 1).replace('per_page=50', 'per_page=500');
+  const mapParams = new URLSearchParams();
+  if (filters.counties?.length) mapParams.set('county', filters.counties.join(','));
   const { data: mapData } = useQuery({
-    queryKey: ['properties-map', filters],
-    queryFn: () => api.get(`/api/properties/map`).then(r => r.data),
+    queryKey: ['properties-map', filters.counties],
+    queryFn: () => api.get(`/api/properties/map?${mapParams.toString()}`).then(r => r.data),
     staleTime: 2 * 60 * 1000,
   });
 

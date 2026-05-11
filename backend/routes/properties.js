@@ -24,6 +24,7 @@ router.get('/', requireAuth, (req, res) => {
     list_date_to,
     has_auction_date,  // 'true' | 'false'
     city,              // comma-separated
+    county,            // comma-separated (Dallas, Travis, ...)
     // Sort
     sort_by = 'list_date',   // price, list_date, auction_date, sqft, bedrooms
     sort_dir = 'desc',       // asc | desc
@@ -70,6 +71,14 @@ router.get('/', requireAuth, (req, res) => {
     const cities = city.split(',').map(c => c.trim());
     conditions.push(`city IN (${cities.map(() => '?').join(',')})`);
     params.push(...cities);
+  }
+
+  if (county) {
+    const counties = county.split(',').map(c => c.trim()).filter(Boolean);
+    if (counties.length > 0) {
+      conditions.push(`county IN (${counties.map(() => '?').join(',')})`);
+      params.push(...counties);
+    }
   }
 
   if (min_price) { conditions.push('price >= ?'); params.push(parseFloat(min_price)); }
@@ -129,15 +138,27 @@ router.get('/', requireAuth, (req, res) => {
 
 // GET /api/properties/map - lightweight endpoint for map markers (lat/lng/id/price/type only)
 router.get('/map', requireAuth, (req, res) => {
-  const { status = 'Active,Pending' } = req.query;
+  const { status = 'Active,Pending', county } = req.query;
   const statuses = status.split(',');
-  const placeholders = statuses.map(() => '?').join(',');
+  const conds = [`lat IS NOT NULL`, `lng IS NOT NULL`];
+  const params = [];
+
+  conds.push(`status IN (${statuses.map(() => '?').join(',')})`);
+  params.push(...statuses);
+
+  if (county) {
+    const counties = county.split(',').map(c => c.trim()).filter(Boolean);
+    if (counties.length > 0) {
+      conds.push(`county IN (${counties.map(() => '?').join(',')})`);
+      params.push(...counties);
+    }
+  }
 
   const markers = db.prepare(`
-    SELECT id, lat, lng, price, sale_type, property_type, address, zip_code, bedrooms, bathrooms, sqft
+    SELECT id, lat, lng, price, sale_type, property_type, address, city, county, zip_code, bedrooms, bathrooms, sqft
     FROM properties
-    WHERE lat IS NOT NULL AND lng IS NOT NULL AND status IN (${placeholders})
-  `).all(...statuses);
+    WHERE ${conds.join(' AND ')}
+  `).all(...params);
 
   res.json(markers);
 });
@@ -189,6 +210,9 @@ router.get('/filter-options', requireAuth, (req, res) => {
     cities: db.prepare(
       `SELECT DISTINCT city FROM properties WHERE city IS NOT NULL AND status IN ('Active','Pending') ORDER BY city`
     ).all().map(r => r.city),
+    counties: db.prepare(
+      `SELECT DISTINCT county FROM properties WHERE county IS NOT NULL AND status IN ('Active','Pending') ORDER BY county`
+    ).all().map(r => r.county),
     sale_types: db.prepare(
       `SELECT DISTINCT sale_type FROM properties WHERE sale_type IS NOT NULL ORDER BY sale_type`
     ).all().map(r => r.sale_type),

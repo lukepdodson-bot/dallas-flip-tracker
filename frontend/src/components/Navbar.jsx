@@ -26,9 +26,9 @@ export default function Navbar() {
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl">🏚</span>
             <span className="text-white font-bold text-lg hidden sm:block">
-              Dallas Foreclosure Tracker
+              Texas Foreclosure Tracker
             </span>
-            <span className="text-white font-bold text-lg sm:hidden">DFW Flips</span>
+            <span className="text-white font-bold text-lg sm:hidden">TX Flips</span>
           </Link>
 
           {/* Nav links */}

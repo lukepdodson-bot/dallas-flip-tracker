@@ -78,7 +78,7 @@ function MapController({ markers, highlightedId }) {
           <div style="font-family:system-ui;min-width:200px">
             <div style="font-size:18px;font-weight:700;color:#0369a1">${fmtPrice(prop.price)}</div>
             <div style="font-size:13px;font-weight:600;color:#111;margin:2px 0">${prop.address}</div>
-            <div style="font-size:11px;color:#666;margin-bottom:6px">${prop.city || 'Dallas'}, TX ${prop.zip_code || ''}</div>
+            <div style="font-size:11px;color:#666;margin-bottom:6px">${prop.city || prop.county || ''}, TX ${prop.zip_code || ''}${prop.county ? ` <span style="background:#eef;color:#557;padding:1px 5px;border-radius:99px;font-size:10px;margin-left:4px">${prop.county} Co.</span>` : ''}</div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
               <span style="background:#fee2e2;color:#991b1b;padding:1px 6px;border-radius:99px;font-size:11px;font-weight:600">${prop.sale_type}</span>
               ${prop.bedrooms ? `<span style="font-size:11px;color:#555">${prop.bedrooms}bd</span>` : ''}
@@ -96,6 +96,13 @@ function MapController({ markers, highlightedId }) {
 
       map.addLayer(cluster);
       clusterRef.current = cluster;
+
+      // Auto-fit to all markers (handles Dallas only, Travis only, or both)
+      const valid = markers.filter(m => m.lat && m.lng);
+      if (valid.length > 0) {
+        const bounds = L.latLngBounds(valid.map(m => [m.lat, m.lng]));
+        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+      }
     });
 
     return () => {

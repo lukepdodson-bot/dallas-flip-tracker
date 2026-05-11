@@ -9,6 +9,7 @@
  *   - Email — almost never publicly available without paid skip-trace API
  */
 const { launchBrowser, newPage } = require('./browser');
+const COUNTIES = require('./counties');
 
 /**
  * Scrape DCAD for owner name and mailing address.
@@ -179,6 +180,110 @@ async function scrapeDCAD(browser, address, city) {
 }
 
 /**
+ * Scrape TCAD (Travis Central Appraisal District) for owner info.
+ *
+ * TCAD search:
+ *   https://search.traviscad.org/Search/
+ *   → free-text search box accepts addresses; results page lists accounts
+ *   → click account → detail page with Owner Name + Mailing Address
+ *
+ * @returns { owner_name, owner_mailing_address } or null
+ */
+async function scrapeTCAD(browser, address, city) {
+  const page = await newPage(browser);
+  try {
+    console.log(`[TCAD] Looking up: ${address}, ${city}`);
+    const searchUrl = `https://search.traviscad.org/Search/?searchtext=${encodeURIComponent(address)}&searchtype=1`;
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.humanDelay();
+
+    // TCAD shows a results table — click first matching account link
+    const firstHref = await page.evaluate(() => {
+      const link = document.querySelector('a[href*="/Property/View/"], a[href*="/Property/Detail"], a[href*="View?"]');
+      return link ? link.href : null;
+    });
+
+    if (!firstHref) {
+      console.log(`[TCAD] No result for ${address}`);
+      return null;
+    }
+
+    console.log(`[TCAD] Following: ${firstHref}`);
+    await page.goto(firstHref, { waitUntil: 'networkidle2', timeout: 30000 });
+
+    // Detail page — owner info usually in a labeled section
+    const detail = await page.evaluate(() => {
+      const text = document.body.innerText || '';
+      const lines = text.split('\n').map(l => l.trim());
+
+      // Look for "Owner Information" or "Owner Name" header
+      let startIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (/^(Owner|Owner Information|Owner Name|Property Owner)/i.test(lines[i])) {
+          startIdx = i + 1;
+          break;
+        }
+      }
+      if (startIdx === -1) return { ownerName: null, mailingAddr: null };
+
+      const stopRe = /^(Property|Legal|Value|Improvement|Land|Exemption|Tax|History|Map|Photo)/i;
+      const block = [];
+      for (let i = startIdx; i < lines.length && i < startIdx + 12; i++) {
+        const l = lines[i];
+        if (!l) { if (block.length > 0) break; continue; }
+        if (stopRe.test(l)) break;
+        // Skip lines that are just labels like "Mailing Address:"
+        if (/^[A-Z][a-z]+( [A-Z][a-z]+)*:\s*$/.test(l)) continue;
+        block.push(l);
+      }
+      if (block.length === 0) return { ownerName: null, mailingAddr: null };
+
+      const looksLikeStreetOrPO = (s) => /^(\d|PO\s+BOX|P\.?O\.?\s+BOX)/i.test(s);
+      let ownerLines = [block[0]];
+      let mailLines  = [];
+      for (let i = 1; i < block.length; i++) {
+        if (looksLikeStreetOrPO(block[i]) || mailLines.length > 0) {
+          mailLines.push(block[i]);
+        } else {
+          ownerLines.push(block[i]);
+        }
+      }
+
+      return {
+        ownerName:   ownerLines.join(' ').trim(),
+        mailingAddr: mailLines.length ? mailLines.join(', ').trim() : null,
+      };
+    });
+
+    console.log(`[TCAD] Parsed: name="${detail.ownerName}" mail="${(detail.mailingAddr||'').substring(0, 60)}"`);
+
+    if (detail.ownerName) {
+      return {
+        owner_name:            cleanName(detail.ownerName),
+        owner_mailing_address: cleanAddr(detail.mailingAddr),
+      };
+    }
+    return null;
+  } catch (e) {
+    console.error(`[TCAD] Error for "${address}":`, e.message.split('\n')[0]);
+    return null;
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
+/**
+ * Pick the appraisal-district scraper based on the property's county.
+ */
+async function scrapeAppraisal(browser, address, city, county) {
+  const cfg = COUNTIES[county];
+  const district = cfg?.appraisal;
+  if (district === 'TCAD') return scrapeTCAD(browser, address, city);
+  // Default to DCAD for Dallas (and as a safe fallback)
+  return scrapeDCAD(browser, address, city);
+}
+
+/**
  * Best-effort: try TruePeopleSearch for phone number.
  * Often blocked by CAPTCHA — returns null if so.
  */
@@ -246,7 +351,7 @@ async function enrichOwners(db, options = {}) {
   const { limit = 100, includePhone = true } = options;
 
   const props = db.prepare(`
-    SELECT id, address, city
+    SELECT id, address, city, county
       FROM properties
      WHERE (owner_name IS NULL OR owner_name = '')
        AND owner_lookup_attempted IS NULL
@@ -272,26 +377,27 @@ async function enrichOwners(db, options = {}) {
     `);
 
     for (const p of props) {
-      const dcad = await scrapeDCAD(browser, p.address, p.city || 'Dallas');
+      const county = p.county || 'Dallas';
+      const owner = await scrapeAppraisal(browser, p.address, p.city || COUNTIES[county]?.cities[0] || 'Dallas', county);
       let phone = null;
 
-      if (dcad?.owner_name && includePhone) {
-        phone = await skipTracePhone(browser, dcad.owner_name, p.city || 'Dallas');
+      if (owner?.owner_name && includePhone) {
+        phone = await skipTracePhone(browser, owner.owner_name, p.city || COUNTIES[county]?.cities[0] || 'Dallas');
       }
 
       try {
         update.run(
-          dcad?.owner_name           || null,
-          dcad?.owner_mailing_address || null,
+          owner?.owner_name           || null,
+          owner?.owner_mailing_address || null,
           phone                      || null,
           p.id
         );
-        if (dcad?.owner_name) {
+        if (owner?.owner_name) {
           success++;
-          console.log(`[Owner] ✓ ${p.address}: ${dcad.owner_name}${phone ? ' / '+phone : ''}`);
+          console.log(`[Owner] ✓ ${p.address} (${county}): ${owner.owner_name}${phone ? ' / '+phone : ''}`);
         } else {
           failed++;
-          console.log(`[Owner] ✗ ${p.address}: no DCAD match`);
+          console.log(`[Owner] ✗ ${p.address} (${county}): no appraisal-district match`);
         }
       } catch (e) {
         failed++;
@@ -308,4 +414,4 @@ async function enrichOwners(db, options = {}) {
   return { total: props.length, success, failed };
 }
 
-module.exports = { enrichOwners, scrapeDCAD, skipTracePhone };
+module.exports = { enrichOwners, scrapeDCAD, scrapeTCAD, scrapeAppraisal, skipTracePhone };

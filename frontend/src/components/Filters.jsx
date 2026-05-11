@@ -47,6 +47,7 @@ export default function Filters({ filters, onChange, onReset }) {
 
   const zipCodes = opts?.zip_codes || [];
   const cities = opts?.cities || [];
+  const counties = opts?.counties || [];
 
   const set = (key, val) => onChange({ ...filters, [key]: val });
   const setNum = (key, val) => onChange({ ...filters, [key]: val === '' ? '' : val });
@@ -56,6 +57,7 @@ export default function Filters({ filters, onChange, onReset }) {
     filters.property_types?.length,
     filters.zip_codes?.length,
     filters.cities?.length,
+    filters.counties?.length,
     filters.min_price || filters.max_price,
     filters.min_beds,
     filters.min_baths,
@@ -70,6 +72,18 @@ export default function Filters({ filters, onChange, onReset }) {
       <div className="max-w-screen-2xl mx-auto px-4 py-3">
         {/* Top row - always visible */}
         <div className="flex flex-wrap items-center gap-3">
+          {/* County toggle */}
+          {counties.length > 0 && (
+            <div className="shrink-0">
+              <MultiSelect
+                label="County"
+                options={counties}
+                value={filters.counties || []}
+                onChange={(v) => set('counties', v)}
+              />
+            </div>
+          )}
+
           {/* Sale type quick filter */}
           <div className="flex-1 min-w-0">
             <MultiSelect

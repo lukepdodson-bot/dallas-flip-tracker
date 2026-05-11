@@ -4,7 +4,7 @@
 require('dotenv').config();
 const db = require('../db/database');
 const { scrapeHUDHomes }               = require('./hudHomes');
-const { scrapeDallasCountyForeclosures } = require('./dallasCountyClerk');
+const { scrapeCountyClerkForeclosures } = require('./countyClerk');
 const { scrapeAuctionDotCom }          = require('./auctionDotCom');
 const { scrapeXome }                   = require('./xome');
 const { geocodeUngeocodedProperties }  = require('./geocoder');
@@ -44,7 +44,7 @@ const upsertProperty = db.prepare(`
 async function runAllScrapers() {
   const scrapers = [
     { name: 'HUD Homes',          fn: scrapeHUDHomes },
-    { name: 'Dallas County',      fn: scrapeDallasCountyForeclosures },
+    { name: 'County Clerk',       fn: scrapeCountyClerkForeclosures },
     { name: 'Auction.com',        fn: scrapeAuctionDotCom },
     { name: 'Xome',               fn: scrapeXome },
   ];

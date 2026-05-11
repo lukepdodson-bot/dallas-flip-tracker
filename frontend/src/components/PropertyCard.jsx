@@ -51,7 +51,12 @@ export default function PropertyCard({ property, compact = false, onHighlight })
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-900 truncate">{property.address}</p>
-            <p className="text-xs text-gray-500">{property.city}, TX {property.zip_code}</p>
+            <p className="text-xs text-gray-500">
+              {property.city}, TX {property.zip_code}
+              {property.county && (
+                <span className="ml-1 inline-block bg-gray-100 text-gray-600 text-[10px] px-1.5 py-0.5 rounded">{property.county}</span>
+              )}
+            </p>
           </div>
           <div className="text-right shrink-0">
             <p className="text-base font-bold text-brand-700">{fmtPrice(property.price)}</p>
