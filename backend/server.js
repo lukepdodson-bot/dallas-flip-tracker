@@ -263,6 +263,51 @@ app.get('/api/scrape/test', require('./routes/auth').requireAuth, async (req, re
   }
 });
 
+// Debug: HUD selector count (admin only)
+app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Admin only' });
+  try {
+    const { launchBrowser, newPage } = require('./scrapers/browser');
+    const browser = await launchBrowser();
+    const page = await newPage(browser);
+    const url = req.query.url || 'https://www.hudhomestore.gov/searchresult?citystate=Texas';
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 90000 });
+    await new Promise(r => setTimeout(r, 3000));
+    // Scroll a few times
+    for (let i = 0; i < 5; i++) {
+      await page.evaluate(() => window.scrollBy(0, 1000));
+      await new Promise(r => setTimeout(r, 800));
+    }
+    const diag = await page.evaluate(() => {
+      const counts = {
+        caseNumberClass:      document.querySelectorAll('.case-number, [class*="case-number"]').length,
+        onclickStep6:         document.querySelectorAll('[onclick*="checkPropertyInStep6"]').length,
+        anyPropertyClass:     document.querySelectorAll('[class*="property"]').length,
+        cardClass:            document.querySelectorAll('[class*="card"]').length,
+        resultItem:           document.querySelectorAll('[class*="result"]').length,
+      };
+      // Find first occurrence of an address-looking pattern
+      const txt = document.body.innerText || '';
+      const addrMatch = txt.match(/\d{2,5}\s+[A-Z][\w\s]+(?:Dr|St|Ave|Ln|Rd|Blvd)[^\n]{0,40}/);
+      const allCaseFromText = (txt.match(/Case #:\s*[\w-]+/g) || []).length;
+      const allCaseFromHtml = (document.body.outerHTML.match(/checkPropertyInStep6\(['"][\w-]+['"]\)/g) || []).length;
+      return {
+        counts,
+        addrSample: addrMatch ? addrMatch[0] : null,
+        casesInVisibleText: allCaseFromText,
+        casesInOuterHtml: allCaseFromHtml,
+        bodyLength: txt.length,
+        title: document.title,
+        url: window.location.href,
+      };
+    });
+    await browser.close();
+    res.json(diag);
+  } catch (e) {
+    res.json({ error: e.message.substring(0, 500) });
+  }
+});
+
 // Diagnostic: check Chromium availability (admin only)
 app.get('/api/scrape/diagnostic', require('./routes/auth').requireAuth, (req, res) => {
   const { execSync } = require('child_process');
