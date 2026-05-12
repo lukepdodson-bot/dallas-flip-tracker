@@ -52,25 +52,43 @@ async function scrapeHUDHomes() {
 
     const listings = await page.evaluate(() => {
       const out = [];
-      const caseEls = Array.from(document.querySelectorAll('.case-number, [class*="case-number"]'));
+      const seen = new Set();
 
-      for (const caseEl of caseEls) {
-        let card = caseEl;
+      // Anchor on case-number elements OR property links with checkPropertyInStep6 onclick.
+      // The Texas-wide list view uses the latter; city-state view uses the former.
+      const anchors = [
+        ...document.querySelectorAll('.case-number, [class*="case-number"]'),
+        ...document.querySelectorAll('a[onclick*="checkPropertyInStep6"], a[onclick*="checkProperty"]'),
+        ...document.querySelectorAll('[onclick*="checkPropertyInStep6"]'),
+      ];
+
+      for (const anchorEl of anchors) {
+        let card = anchorEl;
         for (let i = 0; i < 8 && card; i++) {
           if (card.classList && (
               card.classList.toString().match(/property|listing|search-result|result-item|card/i)
           )) break;
           card = card.parentElement;
         }
-        if (!card) card = caseEl.parentElement?.parentElement?.parentElement;
+        if (!card) card = anchorEl.parentElement?.parentElement?.parentElement;
         if (!card) continue;
 
         const allText = card.innerText || card.textContent || '';
         const allHtml = card.outerHTML || '';
 
+        // Try multiple case-number patterns:
+        //   1. ".case-number" text:  "Case #: XXX-XXXXX"
+        //   2. onclick handler:      checkPropertyInStep6('XXX-XXXXX')
+        let caseNumber = null;
         const caseMatch = allText.match(/Case #:\s*([\w-]+)/i);
-        const caseNumber = caseMatch ? caseMatch[1] : null;
+        if (caseMatch) caseNumber = caseMatch[1];
+        if (!caseNumber) {
+          const onclickMatch = allHtml.match(/checkPropertyInStep6\(['"]([\w-]+)['"]\)/);
+          if (onclickMatch) caseNumber = onclickMatch[1];
+        }
         if (!caseNumber) continue;
+        if (seen.has(caseNumber)) continue;
+        seen.add(caseNumber);
 
         const coordMatch = allHtml.match(/zoomOnSingleProperty\(([\d.-]+),\s*([\d.-]+)\)/);
         const lat = coordMatch ? parseFloat(coordMatch[1]) : null;
