@@ -73,7 +73,9 @@ async function scrapeHUDHomes() {
         if (!card) card = anchorEl.parentElement?.parentElement?.parentElement;
         if (!card) continue;
 
-        const allText = card.innerText || card.textContent || '';
+        // Use textContent (not innerText) — Texas-wide page hides most cards
+        // via CSS until paginated, so innerText returns empty for hidden ones.
+        const allText = (card.textContent || card.innerText || '').replace(/\s+/g, ' ').trim();
         const allHtml = card.outerHTML || '';
 
         // Try multiple case-number patterns:
