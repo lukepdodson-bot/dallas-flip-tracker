@@ -279,24 +279,65 @@ app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (re
       await new Promise(r => setTimeout(r, 800));
     }
     const diag = await page.evaluate(() => {
-      const counts = {
-        caseNumberClass:      document.querySelectorAll('.case-number, [class*="case-number"]').length,
-        onclickStep6:         document.querySelectorAll('[onclick*="checkPropertyInStep6"]').length,
-        anyPropertyClass:     document.querySelectorAll('[class*="property"]').length,
-        cardClass:            document.querySelectorAll('[class*="card"]').length,
-        resultItem:           document.querySelectorAll('[class*="result"]').length,
-      };
-      // Find first occurrence of an address-looking pattern
-      const txt = document.body.innerText || '';
-      const addrMatch = txt.match(/\d{2,5}\s+[A-Z][\w\s]+(?:Dr|St|Ave|Ln|Rd|Blvd)[^\n]{0,40}/);
-      const allCaseFromText = (txt.match(/Case #:\s*[\w-]+/g) || []).length;
-      const allCaseFromHtml = (document.body.outerHTML.match(/checkPropertyInStep6\(['"][\w-]+['"]\)/g) || []).length;
+      // Replicate the scraper's exact logic and count what survives each step
+      const anchors = [
+        ...document.querySelectorAll('.case-number, [class*="case-number"]'),
+        ...document.querySelectorAll('a[onclick*="checkPropertyInStep6"], a[onclick*="checkProperty"]'),
+        ...document.querySelectorAll('[onclick*="checkPropertyInStep6"]'),
+      ];
+
+      const samples = [];
+      const seen = new Set();
+      let rejectedNoCard = 0, rejectedNoCaseNum = 0, dedup = 0, extracted = 0;
+
+      for (const anchorEl of anchors.slice(0, 200)) {
+        let card = anchorEl;
+        for (let i = 0; i < 8 && card; i++) {
+          if (card.classList && (
+              card.classList.toString().match(/property|listing|search-result|result-item|card/i)
+          )) break;
+          card = card.parentElement;
+        }
+        if (!card) card = anchorEl.parentElement?.parentElement?.parentElement;
+        if (!card) { rejectedNoCard++; continue; }
+
+        const allText = (card.textContent || card.innerText || '').replace(/\s+/g, ' ').trim();
+        const allHtml = card.outerHTML || '';
+
+        let caseNumber = null;
+        const caseMatch = allText.match(/Case #:\s*([\w-]+)/i);
+        if (caseMatch) caseNumber = caseMatch[1];
+        if (!caseNumber) {
+          const onclickMatch = allHtml.match(/checkPropertyInStep6\(['"]([\w-]+)['"]\)/);
+          if (onclickMatch) caseNumber = onclickMatch[1];
+        }
+        if (!caseNumber) { rejectedNoCaseNum++; continue; }
+        if (seen.has(caseNumber)) { dedup++; continue; }
+        seen.add(caseNumber);
+
+        const cityZipMatch = allText.match(/([A-Z][A-Za-z\s.]+?),\s*TX,?\s*(\d{5})/);
+        const addrMatch    = allText.match(/(\d+\s+[A-Z][\w\s.]+(?:\s(?:DR|ST|AVE|LN|RD|BLVD|CT|CIR|PL|WAY|TRL|TER|SQ))[^\n,]{0,40})/i);
+        const priceMatch   = allText.match(/\$([\d,]+)/);
+        extracted++;
+
+        if (samples.length < 5) {
+          samples.push({
+            caseNumber,
+            textSnippet: allText.substring(0, 220),
+            city:  cityZipMatch ? cityZipMatch[1].trim() : null,
+            zip:   cityZipMatch ? cityZipMatch[2]        : null,
+            addr:  addrMatch ? addrMatch[1].trim() : null,
+            price: priceMatch ? priceMatch[1] : null,
+            cardClass: card.className || '',
+          });
+        }
+      }
+
       return {
-        counts,
-        addrSample: addrMatch ? addrMatch[0] : null,
-        casesInVisibleText: allCaseFromText,
-        casesInOuterHtml: allCaseFromHtml,
-        bodyLength: txt.length,
+        anchorsTotal: anchors.length,
+        anchorsUnique: new Set(anchors).size,
+        rejectedNoCard, rejectedNoCaseNum, dedup, extracted,
+        samples,
         title: document.title,
         url: window.location.href,
       };
