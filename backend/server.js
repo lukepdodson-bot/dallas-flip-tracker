@@ -314,8 +314,13 @@ app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (re
         if (seen.has(caseNumber)) continue;
         seen.add(caseNumber);
 
-        const countyMatch = allText.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
-        const county = countyMatch ? countyMatch[1] : 'UNKNOWN';
+        let county = 'UNKNOWN';
+        const cab = allText.match(/Baths?\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?)\s+County\b/);
+        if (cab) county = cab[1];
+        else {
+          const g = allText.match(/(?:^|\s)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
+          if (g) county = g[1];
+        }
         countiesSeen[county] = (countiesSeen[county] || 0) + 1;
 
         const segmentMatch = allText.match(/\$[\d,]+\s+(.+?)\s+\d+\s*Beds?/i);

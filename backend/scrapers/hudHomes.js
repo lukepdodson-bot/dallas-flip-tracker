@@ -81,9 +81,18 @@ async function scrapeHUDHomes() {
         if (seen.has(caseNumber)) continue;
         seen.add(caseNumber);
 
-        // County name — usually appears as "X County" or "X Y County" right before "Case #:"
-        const countyMatch = allText.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
-        const countyName  = countyMatch ? countyMatch[1] : null;
+        // County name — always appears as "...Baths {County} County..." in the
+        // concatenated text. Anchor on "Baths" to avoid grabbing the word
+        // "Baths" itself as part of a 2-word county name.
+        let countyName = null;
+        const countyAfterBaths = allText.match(/Baths?\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)?)\s+County\b/);
+        if (countyAfterBaths) {
+          countyName = countyAfterBaths[1];
+        } else {
+          // Fallback (cards without bed/bath info)
+          const generic = allText.match(/(?:^|\s)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
+          if (generic) countyName = generic[1];
+        }
 
         // Address + city + zip: "ADDRESS_TOKENS CITY, TX, ZIP"
         // The city is 1–3 capitalized words right before ", TX, ZIP".
