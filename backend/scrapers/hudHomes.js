@@ -1,38 +1,27 @@
 /**
  * HUD HomeStore Scraper — Texas-wide.
  *
- * The previous approach searched `citystate=Dallas, TX` and `Austin, TX` separately,
- * which returned only 2 total listings. The state-wide search `citystate=Texas`
- * loads ALL Texas inventory (~1.2 MB) in one page. We extract every listing
- * then bucket each one into a configured county by matching its city name.
+ * The Texas-wide search (`citystate=Texas`) loads the entire TX HUD inventory
+ * (~125–250 listings, 1.2 MB HTML) in a single page. We extract every card
+ * and bucket each one into a configured county.
  *
- * Each listing card has:
- *   - case-number: "Case #: XXX-XXXXXX"
- *   - lat/lng in onclick attribute (zoomOnSingleProperty)
- *   - address in card title/heading
- *   - city/state/zip in "City, TX, ZIP" format
- *   - price displayed prominently
+ * Per-card text format (concatenated via textContent):
+ *   "BIDS OPEN MM/DD/YYYY ... $PRICE ADDRESS_TOKENS CITY, TX, ZIP N Beds N.N Baths COUNTY_NAME County Case #: XXX-XXXXX ..."
+ *
+ * The cleanest way to bucket a listing is to extract its "X County" string
+ * and match it against the configured county names.
  */
 const { launchBrowser, newPage } = require('./browser');
 const COUNTIES = require('./counties');
 
 const SEARCH_URL = 'https://www.hudhomestore.gov/searchresult?citystate=Texas';
 
-// Build a city → county map from the config (lowercase keys for matching)
-function buildCityToCountyMap() {
-  const map = new Map();
-  for (const cfg of Object.values(COUNTIES)) {
-    for (const city of cfg.cities) {
-      map.set(city.toLowerCase(), cfg.name);
-    }
-  }
-  return map;
-}
+// Build lookups
+const COUNTY_NAMES = new Set(Object.values(COUNTIES).map(c => c.name.toLowerCase()));
 
 async function scrapeHUDHomes() {
   const results = [];
   let browser;
-  const cityMap = buildCityToCountyMap();
 
   try {
     browser = await launchBrowser();
@@ -42,20 +31,22 @@ async function scrapeHUDHomes() {
     await page.goto(SEARCH_URL, { waitUntil: 'networkidle2', timeout: 90000 });
     await page.humanDelay();
 
+    // Scroll a few times to ensure all lazy elements are in the DOM
+    for (let i = 0; i < 4; i++) {
+      await page.evaluate(() => window.scrollBy(0, 1200));
+      await new Promise(r => setTimeout(r, 700));
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+
     const title = await page.title();
     console.log(`[HUD] Title: "${title}"`);
-
-    // Scroll to bottom to trigger any lazy-load
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await new Promise(r => setTimeout(r, 1500));
-    await page.evaluate(() => window.scrollTo(0, 0));
 
     const listings = await page.evaluate(() => {
       const out = [];
       const seen = new Set();
 
-      // Anchor on case-number elements OR property links with checkPropertyInStep6 onclick.
-      // The Texas-wide list view uses the latter; city-state view uses the former.
+      // The Texas-wide layout uses anchors with `checkPropertyInStep6('case')` onclick;
+      // the per-city layout uses `.case-number` text divs. Union both selectors.
       const anchors = [
         ...document.querySelectorAll('.case-number, [class*="case-number"]'),
         ...document.querySelectorAll('a[onclick*="checkPropertyInStep6"], a[onclick*="checkProperty"]'),
@@ -73,17 +64,15 @@ async function scrapeHUDHomes() {
         if (!card) card = anchorEl.parentElement?.parentElement?.parentElement;
         if (!card) continue;
 
-        // Use textContent (not innerText) — Texas-wide page hides most cards
-        // via CSS until paginated, so innerText returns empty for hidden ones.
-        const allText = (card.textContent || card.innerText || '').replace(/\s+/g, ' ').trim();
+        // textContent — innerText skips CSS-hidden elements (most listings
+        // are hidden until paginated client-side on the state-wide page)
+        const allText = (card.textContent || '').replace(/\s+/g, ' ').trim();
         const allHtml = card.outerHTML || '';
 
-        // Try multiple case-number patterns:
-        //   1. ".case-number" text:  "Case #: XXX-XXXXX"
-        //   2. onclick handler:      checkPropertyInStep6('XXX-XXXXX')
+        // Case number (anchor for dedup)
         let caseNumber = null;
-        const caseMatch = allText.match(/Case #:\s*([\w-]+)/i);
-        if (caseMatch) caseNumber = caseMatch[1];
+        const caseInText = allText.match(/Case #:\s*([\w-]+)/i);
+        if (caseInText) caseNumber = caseInText[1];
         if (!caseNumber) {
           const onclickMatch = allHtml.match(/checkPropertyInStep6\(['"]([\w-]+)['"]\)/);
           if (onclickMatch) caseNumber = onclickMatch[1];
@@ -92,33 +81,48 @@ async function scrapeHUDHomes() {
         if (seen.has(caseNumber)) continue;
         seen.add(caseNumber);
 
+        // County name — usually appears as "X County" or "X Y County" right before "Case #:"
+        const countyMatch = allText.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
+        const countyName  = countyMatch ? countyMatch[1] : null;
+
+        // Address + city + zip: "ADDRESS_TOKENS CITY, TX, ZIP"
+        // The city is 1–3 capitalized words right before ", TX, ZIP".
+        // The address is everything before that, after a $price.
+        let address = null, city = null, zip = null;
+
+        // Try: chunk between $PRICE and Beds keyword — that's "ADDRESS CITY, TX, ZIP"
+        const segmentMatch = allText.match(/\$[\d,]+\s+(.+?)\s+\d+\s*Beds?/i);
+        if (segmentMatch) {
+          const segment = segmentMatch[1];
+          const m = segment.match(/^(.+?)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2}),\s*TX,?\s*(\d{5})$/);
+          if (m) {
+            address = m[1].trim();
+            city    = m[2].trim();
+            zip     = m[3];
+          }
+        }
+        // Fallback: simpler city/zip extract
+        if (!city) {
+          const cityZip = allText.match(/([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2}),\s*TX,?\s*(\d{5})/);
+          if (cityZip) { city = cityZip[1].trim(); zip = cityZip[2]; }
+        }
+        if (!address) {
+          // street # + words + suffix
+          const addrM = allText.match(/(\d{1,6}\s+(?:[NSEW]\.?\s+)?[A-Z][\w.\s]{2,40}?(?:Dr|Drive|St|Street|Ave|Avenue|Ln|Lane|Rd|Road|Blvd|Boulevard|Ct|Court|Cir|Circle|Pl|Place|Way|Pkwy|Trl|Trail|Ter|Terrace|Hwy|Highway|Sq|Square)\.?)/);
+          if (addrM) address = addrM[1].trim();
+        }
+
+        // Coordinates from the marker's onclick handler
         const coordMatch = allHtml.match(/zoomOnSingleProperty\(([\d.-]+),\s*([\d.-]+)\)/);
         const lat = coordMatch ? parseFloat(coordMatch[1]) : null;
         const lng = coordMatch ? parseFloat(coordMatch[2]) : null;
 
-        let address = '';
-        const titleEl = card.querySelector('h2, h3, h4, .title, .property-title, .address, [class*="property-address"]');
-        if (titleEl) address = titleEl.innerText.trim();
-        if (!address) {
-          const link = card.querySelector('a[href*="/property"], a[onclick*="checkPropertyInStep6"], a[onclick*="checkProperty"]');
-          if (link) address = link.innerText.trim();
-        }
-        if (!address) {
-          const m = allText.match(/(\d+\s+[A-Z][\w\s]+(?:\s(?:DR|ST|AVE|LN|RD|BLVD|CT|CIR|PL|WAY|TRL|TER|SQ))[^\n]{0,40})/i);
-          if (m) address = m[1].trim();
-        }
-
         const priceMatch = allText.match(/\$([\d,]+)/);
         const price = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : null;
 
-        const bedMatch  = allText.match(/(\d+)\s*(?:Bed|BR|bd)\b/i);
-        const bathMatch = allText.match(/(\d+(?:\.\d+)?)\s*(?:Bath|BA|ba)\b/i);
+        const bedMatch  = allText.match(/(\d+)\s*Beds?\b/i);
+        const bathMatch = allText.match(/(\d+(?:\.\d+)?)\s*Baths?\b/i);
         const sqftMatch = allText.match(/([\d,]+)\s*(?:sq\.?\s*ft\.?|sqft|square feet)/i);
-
-        // City/state/zip — HUD format: "City, TX, 75123"
-        const cityZipMatch = allText.match(/([A-Z][A-Za-z\s.]+?),\s*TX,?\s*(\d{5})/);
-        const city = cityZipMatch ? cityZipMatch[1].trim() : null;
-        const zip  = cityZipMatch ? cityZipMatch[2]        : null;
 
         const detailLink = card.querySelector('a[href*="/property"], a[onclick*="checkProperty"]');
         let sourceUrl = null;
@@ -130,11 +134,11 @@ async function scrapeHUDHomes() {
         }
 
         out.push({
-          caseNumber, address, city, zip,
+          caseNumber, address, city, zip, countyName,
           lat, lng, price,
-          beds: bedMatch ? parseInt(bedMatch[1]) : null,
+          beds:  bedMatch  ? parseInt(bedMatch[1]) : null,
           baths: bathMatch ? parseFloat(bathMatch[1]) : null,
-          sqft: sqftMatch ? parseInt(sqftMatch[1].replace(/,/g, '')) : null,
+          sqft:  sqftMatch ? parseInt(sqftMatch[1].replace(/,/g, '')) : null,
           sourceUrl,
         });
       }
@@ -143,14 +147,12 @@ async function scrapeHUDHomes() {
 
     console.log(`[HUD] Total TX listings rendered: ${listings.length}`);
 
-    // Bucket into our configured counties
+    // Bucket by extracted county name → configured counties.js
     const byCounty = {};
     for (const l of listings) {
       if (!l.address || l.address.length < 5) continue;
-      if (!l.city) continue;
-
-      const county = cityMap.get(l.city.toLowerCase());
-      if (!county) continue; // skip cities not in any configured county
+      if (!l.countyName) continue;
+      if (!COUNTY_NAMES.has(l.countyName.toLowerCase())) continue;
 
       const cleanAddress = l.address
         .split(/\r?\n/)[0]
@@ -160,9 +162,9 @@ async function scrapeHUDHomes() {
 
       results.push({
         address:       cleanAddress,
-        city:          l.city,
+        city:          l.city || l.countyName,
         zip_code:      l.zip || null,
-        county:        county,
+        county:        l.countyName,
         lat:           l.lat,
         lng:           l.lng,
         price:         l.price,
@@ -179,7 +181,7 @@ async function scrapeHUDHomes() {
         description:   'HUD Home — sold as-is. Contact listing broker for showing instructions. ' +
                        'FHA financing may be available with escrow repair addendum.',
       });
-      byCounty[county] = (byCounty[county] || 0) + 1;
+      byCounty[l.countyName] = (byCounty[l.countyName] || 0) + 1;
     }
 
     console.log(`[HUD] Kept by county:`, JSON.stringify(byCounty));
