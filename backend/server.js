@@ -279,18 +279,17 @@ app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (re
       await new Promise(r => setTimeout(r, 800));
     }
     const diag = await page.evaluate(() => {
-      // Replicate the scraper's exact logic and count what survives each step
       const anchors = [
         ...document.querySelectorAll('.case-number, [class*="case-number"]'),
         ...document.querySelectorAll('a[onclick*="checkPropertyInStep6"], a[onclick*="checkProperty"]'),
         ...document.querySelectorAll('[onclick*="checkPropertyInStep6"]'),
       ];
 
-      const samples = [];
       const seen = new Set();
-      let rejectedNoCard = 0, rejectedNoCaseNum = 0, dedup = 0, extracted = 0;
+      const countiesSeen = {};
+      const dallasSamples = [], travisSamples = [], otherSamples = [];
 
-      for (const anchorEl of anchors.slice(0, 200)) {
+      for (const anchorEl of anchors) {
         let card = anchorEl;
         for (let i = 0; i < 8 && card; i++) {
           if (card.classList && (
@@ -299,9 +298,9 @@ app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (re
           card = card.parentElement;
         }
         if (!card) card = anchorEl.parentElement?.parentElement?.parentElement;
-        if (!card) { rejectedNoCard++; continue; }
+        if (!card) continue;
 
-        const allText = (card.textContent || card.innerText || '').replace(/\s+/g, ' ').trim();
+        const allText = (card.textContent || '').replace(/\s+/g, ' ').trim();
         const allHtml = card.outerHTML || '';
 
         let caseNumber = null;
@@ -311,35 +310,36 @@ app.get('/api/scrape/hud-debug', require('./routes/auth').requireAuth, async (re
           const onclickMatch = allHtml.match(/checkPropertyInStep6\(['"]([\w-]+)['"]\)/);
           if (onclickMatch) caseNumber = onclickMatch[1];
         }
-        if (!caseNumber) { rejectedNoCaseNum++; continue; }
-        if (seen.has(caseNumber)) { dedup++; continue; }
+        if (!caseNumber) continue;
+        if (seen.has(caseNumber)) continue;
         seen.add(caseNumber);
 
-        const cityZipMatch = allText.match(/([A-Z][A-Za-z\s.]+?),\s*TX,?\s*(\d{5})/);
-        const addrMatch    = allText.match(/(\d+\s+[A-Z][\w\s.]+(?:\s(?:DR|ST|AVE|LN|RD|BLVD|CT|CIR|PL|WAY|TRL|TER|SQ))[^\n,]{0,40})/i);
-        const priceMatch   = allText.match(/\$([\d,]+)/);
-        extracted++;
+        const countyMatch = allText.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+County\b/);
+        const county = countyMatch ? countyMatch[1] : 'UNKNOWN';
+        countiesSeen[county] = (countiesSeen[county] || 0) + 1;
 
-        if (samples.length < 5) {
-          samples.push({
-            caseNumber,
-            textSnippet: allText.substring(0, 220),
-            city:  cityZipMatch ? cityZipMatch[1].trim() : null,
-            zip:   cityZipMatch ? cityZipMatch[2]        : null,
-            addr:  addrMatch ? addrMatch[1].trim() : null,
-            price: priceMatch ? priceMatch[1] : null,
-            cardClass: card.className || '',
-          });
+        const segmentMatch = allText.match(/\$[\d,]+\s+(.+?)\s+\d+\s*Beds?/i);
+        let address = null, city = null, zip = null;
+        if (segmentMatch) {
+          const m = segmentMatch[1].match(/^(.+?)\s+([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,2}),\s*TX,?\s*(\d{5})$/);
+          if (m) { address = m[1].trim(); city = m[2].trim(); zip = m[3]; }
         }
+
+        const sample = { caseNumber, county, address, city, zip, snippet: allText.substring(0, 200) };
+        if (county === 'Dallas' && dallasSamples.length < 8) dallasSamples.push(sample);
+        else if (county === 'Travis' && travisSamples.length < 8) travisSamples.push(sample);
+        else if (otherSamples.length < 3) otherSamples.push(sample);
       }
 
       return {
         anchorsTotal: anchors.length,
-        anchorsUnique: new Set(anchors).size,
-        rejectedNoCard, rejectedNoCaseNum, dedup, extracted,
-        samples,
+        uniqueCases: seen.size,
+        countiesSeen,
+        dallasCount: countiesSeen['Dallas'] || 0,
+        travisCount: countiesSeen['Travis'] || 0,
+        dallasSamples, travisSamples,
+        otherSamples,
         title: document.title,
-        url: window.location.href,
       };
     });
     await browser.close();
