@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fairway Detail Co. | Mobile Detailing for DFW Golf &amp; Country Club Members</title>
+<meta name="description" content="Premium on-site mobile car detailing for golf and country club members in Dallas–Fort Worth. Drop your keys at the bag drop, play your round, drive home brand new.">
+
+<style>
+  /* ---------- Design Tokens ---------- */
+  :root {
+    --fairway-900: #0b2b1f;
+    --fairway-800: #123526;
+    --fairway-700: #1a4632;
+    --fairway-600: #235940;
+    --fairway-500: #2d6b4d;
+    --cream: #f7f4ec;
+    --cream-dim: #efe9da;
+    --charcoal-900: #16181a;
+    --charcoal-700: #2a2d30;
+    --charcoal-500: #565b60;
+    --charcoal-300: #8a9095;
+    --gold-500: #b8933f;
+    --gold-400: #cfa951;
+    --gold-300: #e2c274;
+    --white: #ffffff;
+    --line: rgba(255,255,255,0.14);
+    --line-dark: rgba(11,43,31,0.12);
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --shadow-soft: 0 10px 30px rgba(11,43,31,0.12);
+    --shadow-card: 0 14px 40px rgba(11,43,31,0.10);
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    --max-w: 1180px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--charcoal-900);
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  img, svg { max-width: 100%; display: block; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .wrap {
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  section { position: relative; }
+
+  h1, h2, h3, h4 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.12;
+  }
+
+  p { margin: 0; line-height: 1.6; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-500);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 22px;
+    height: 1.5px;
+    background: var(--gold-500);
+    display: inline-block;
+  }
+
+  .section-head {
+    max-width: 640px;
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin-top: 10px; }
+  .section-head p { margin-top: 14px; color: var(--charcoal-500); font-size: 1.05rem; }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:active { transform: translateY(1px); }
+
+  .btn-primary {
+    background: linear-gradient(180deg, var(--gold-400), var(--gold-500));
+    color: var(--fairway-900);
+    box-shadow: 0 8px 22px rgba(184,147,63,0.35);
+  }
+  .btn-primary:hover { box-shadow: 0 10px 26px rgba(184,147,63,0.5); transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border-color: rgba(255,255,255,0.55);
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--white); }
+
+  .btn-outline-dark {
+    background: transparent;
+    color: var(--fairway-800);
+    border-color: var(--fairway-800);
+  }
+  .btn-outline-dark:hover { background: var(--fairway-800); color: var(--white); }
+
+  .btn-block { width: 100%; }
+
+  /* ---------- Nav ---------- */
+  .site-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11,43,31,0.92);
+    backdrop-filter: saturate(160%) blur(10px);
+    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .site-nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: -0.01em;
+  }
+  .wordmark .mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, var(--gold-300), var(--gold-500) 60%, var(--gold-500));
+    position: relative;
+    flex-shrink: 0;
+  }
+  .wordmark .mark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image:
+      radial-gradient(circle at 30% 25%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
+      radial-gradient(circle at 50% 20%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
+      radial-gradient(circle at 65% 32%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
+      radial-gradient(circle at 40% 45%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
+      radial-gradient(circle at 60% 50%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+  }
+  .nav-links a:not(.btn) {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: rgba(247,244,236,0.82);
+    transition: color 0.15s ease;
+  }
+  .nav-links a:not(.btn):hover { color: var(--gold-300); }
+
+  .nav-cta { display: flex; align-items: center; gap: 18px; }
+
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .nav-toggle span,
+  .nav-toggle span::before,
+  .nav-toggle span::after {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--white);
+    position: relative;
+    transition: transform 0.2s ease;
+  }
+  .nav-toggle span::before { position: absolute; top: -6px; }
+  .nav-toggle span::after { position: absolute; top: 6px; }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    background:
+      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(184,147,63,0.25), transparent 60%),
+      linear-gradient(160deg, var(--fairway-900) 0%, var(--fairway-800) 45%, var(--fairway-700) 100%);
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+    padding: 96px 0 120px;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 70px);
+    pointer-events: none;
+  }
+  .hero .contour {
+    position: absolute;
+    right: -12%;
+    top: -18%;
+    width: 620px;
+    height: 620px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+    pointer-events: none;
+  }
+  .hero .contour::before {
+    content: "";
+    position: absolute;
+    inset: 70px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .hero .contour::after {
+    content: "";
+    position: absolute;
+    inset: 140px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+  }
+  .hero h1 {
+    margin-top: 18px;
+    font-size: clamp(2.3rem, 5.4vw, 3.75rem);
+    color: var(--white);
+  }
+  .hero h1 .accent { color: var(--gold-300); }
+  .hero .subhead {
+    margin-top: 22px;
+    font-size: clamp(1.02rem, 1.6vw, 1.2rem);
+    color: rgba(247,244,236,0.82);
+    max-width: 580px;
+  }
+  .hero-ctas {
+    margin-top: 38px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .hero-stats {
+    position: relative;
+    z-index: 1;
+    margin-top: 64px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 20px;
+    max-width: 640px;
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+  }
+  .hero-stats div strong {
+    display: block;
+    font-size: 1.5rem;
+    color: var(--gold-300);
+    font-weight: 800;
+  }
+  .hero-stats div span {
+    font-size: 0.82rem;
+    color: rgba(247,244,236,0.7);
+  }
+
+  /* ---------- How it works ---------- */
+  .how { padding: 100px 0; background: var(--cream); }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 24px;
+    counter-reset: step;
+  }
+  .step {
+    background: var(--white);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius-lg);
+    padding: 32px 26px;
+    position: relative;
+  }
+  .step-num {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--fairway-800);
+    color: var(--gold-300);
+    font-weight: 800;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  .step h3 { font-size: 1.05rem; margin-bottom: 10px; color: var(--fairway-900); }
+  .step p { color: var(--charcoal-500); font-size: 0.94rem; }
+  .step-connector {
+    display: none;
+  }
+
+  /* ---------- Services ---------- */
+  .services { padding: 100px 0; background: var(--charcoal-900); color: var(--white); }
+  .services .section-head p { color: rgba(247,244,236,0.65); }
+  .services .eyebrow { color: var(--gold-400); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 26px;
+    align-items: stretch;
+  }
+  .card {
+    background: var(--charcoal-700);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-lg);
+    padding: 36px 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .card.featured {
+    background: linear-gradient(165deg, var(--fairway-700), var(--fairway-900));
+    border-color: var(--gold-500);
+    transform: translateY(-10px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+  .badge {
+    position: absolute;
+    top: -13px;
+    left: 30px;
+    background: linear-gradient(180deg, var(--gold-400), var(--gold-500));
+    color: var(--fairway-900);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 999px;
+  }
+  .card h3 { font-size: 1.25rem; color: var(--white); }
+  .card .price {
+    margin-top: 14px;
+    font-size: 2.1rem;
+    font-weight: 800;
+    color: var(--gold-300);
+  }
+  .card .price span { font-size: 0.95rem; font-weight: 500; color: rgba(247,244,236,0.55); }
+  .card .desc { margin-top: 10px; color: rgba(247,244,236,0.6); font-size: 0.9rem; }
+  .card ul {
+    list-style: none;
+    margin: 26px 0 30px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex-grow: 1;
+  }
+  .card ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.92rem;
+    color: rgba(247,244,236,0.85);
+  }
+  .card ul li::before {
+    content: "";
+    flex-shrink: 0;
+    margin-top: 6px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold-400);
+  }
+
+  /* ---------- Membership ---------- */
+  .membership { padding: 100px 0; background: var(--cream-dim); }
+  .membership .cards .card {
+    background: var(--white);
+    border-color: var(--line-dark);
+  }
+  .membership .cards .card h3 { color: var(--fairway-900); }
+  .membership .cards .card .price { color: var(--fairway-700); }
+  .membership .cards .card .price span { color: var(--charcoal-500); }
+  .membership .cards .card .desc { color: var(--charcoal-500); }
+  .membership .cards .card ul li { color: var(--charcoal-700); }
+  .membership .cards .card.featured {
+    background: linear-gradient(165deg, var(--fairway-800), var(--fairway-900));
+  }
+  .membership .cards .card.featured h3,
+  .membership .cards .card.featured .price { color: var(--white); }
+  .membership .cards .card.featured .price { color: var(--gold-300); }
+  .membership .cards .card.featured .desc { color: rgba(247,244,236,0.65); }
+  .membership .cards .card.featured ul li { color: rgba(247,244,236,0.88); }
+
+  /* ---------- For Clubs ---------- */
+  .clubs {
+    padding: 100px 0;
+    background: linear-gradient(160deg, var(--fairway-900), var(--fairway-700));
+    color: var(--white);
+    position: relative;
+    overflow: hidden;
+  }
+  .clubs::before {
+    content: "";
+    position: absolute;
+    left: -120px;
+    bottom: -160px;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,147,63,0.18), transparent 70%);
+  }
+  .clubs-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 60px;
+    align-items: center;
+  }
+  .clubs h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); margin-top: 10px; }
+  .clubs p.lead { margin-top: 18px; color: rgba(247,244,236,0.82); font-size: 1.05rem; max-width: 480px; }
+  .clubs .btn { margin-top: 30px; }
+
+  .club-points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+  }
+  .club-points li {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .club-points .icon {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(207,169,81,0.16);
+    border: 1px solid rgba(207,169,81,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .club-points .icon span {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--gold-300);
+  }
+  .club-points strong { display: block; font-size: 0.98rem; color: var(--white); }
+  .club-points p { margin-top: 4px; font-size: 0.88rem; color: rgba(247,244,236,0.68); }
+
+  /* ---------- Contact ---------- */
+  .contact { padding: 100px 0; background: var(--cream); }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 56px;
+    align-items: start;
+  }
+  .contact-info h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); color: var(--fairway-900); margin-top: 10px; }
+  .contact-info p.lead { margin-top: 16px; color: var(--charcoal-500); font-size: 1.02rem; }
+  .contact-list {
+    margin-top: 32px;
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 18px;
+  }
+  .contact-list li {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    font-size: 0.96rem;
+    color: var(--charcoal-700);
+  }
+  .contact-list .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gold-500); flex-shrink: 0;
+  }
+  .notice {
+    margin-top: 30px;
+    padding: 16px 18px;
+    border-radius: var(--radius-md);
+    background: var(--cream-dim);
+    border: 1px solid var(--line-dark);
+    font-size: 0.86rem;
+    color: var(--charcoal-500);
+  }
+
+  .booking-form {
+    background: var(--white);
+    border: 1px solid var(--line-dark);
+    border-radius: var(--radius-lg);
+    padding: 36px;
+    box-shadow: var(--shadow-card);
+  }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--fairway-900);
+    margin-bottom: 7px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(11,43,31,0.2);
+    background: var(--cream);
+    font-family: inherit;
+    font-size: 0.94rem;
+    color: var(--charcoal-900);
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    outline: 2px solid var(--fairway-600);
+    outline-offset: 1px;
+    background: var(--white);
+  }
+  .field textarea { resize: vertical; min-height: 90px; }
+  .form-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .form-foot small { color: var(--charcoal-300); font-size: 0.78rem; }
+
+  /* ---------- Footer ---------- */
+  .site-footer {
+    background: var(--fairway-900);
+    color: rgba(247,244,236,0.7);
+    padding: 56px 0 28px;
+  }
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .footer-brand .wordmark { margin-bottom: 12px; }
+  .footer-brand p { max-width: 320px; font-size: 0.88rem; color: rgba(247,244,236,0.55); }
+  .footer-links {
+    display: flex;
+    gap: 56px;
+    flex-wrap: wrap;
+  }
+  .footer-col h4 {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-300);
+    margin-bottom: 14px;
+  }
+  .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .footer-col a { font-size: 0.9rem; color: rgba(247,244,236,0.72); }
+  .footer-col a:hover { color: var(--white); }
+  .footer-bottom {
+    margin-top: 26px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: rgba(247,244,236,0.45);
+  }
+  .footer-club-line {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: rgba(207,169,81,0.75);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: 0;
+    background: var(--gold-400);
+    color: var(--fairway-900);
+    padding: 12px 18px;
+    z-index: 1000;
+    border-radius: 0 0 8px 0;
+    font-weight: 700;
+  }
+  .skip-link:focus { left: 0; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 980px) {
+    .clubs-grid { grid-template-columns: 1fr; gap: 40px; }
+    .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+    .cards { grid-template-columns: 1fr 1fr; }
+    .card.featured { transform: none; }
+    .steps { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    .nav-links {
+      position: absolute;
+      top: 72px;
+      left: 0;
+      right: 0;
+      background: var(--fairway-900);
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 24px;
+      gap: 20px;
+      border-bottom: 1px solid var(--line);
+      display: none;
+    }
+    .nav-links.open { display: flex; }
+    .nav-links .btn { width: 100%; }
+    .nav-cta .btn-primary.desktop-only { display: none; }
+    .nav-toggle { display: flex; }
+    .hero { padding: 64px 0 80px; }
+    .hero-stats { grid-template-columns: 1fr; gap: 18px; }
+    .steps { grid-template-columns: 1fr; }
+    .cards { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .footer-top { flex-direction: column; }
+    .footer-links { gap: 32px; }
+  }
+
+  @media (min-width: 761px) {
+    .nav-links { display: flex !important; position: static; background: none; padding: 0; border: 0; flex-direction: row; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============ NAV ============ -->
+<header class="site-nav">
+  <div class="wrap">
+    <a href="#top" class="wordmark" aria-label="Fairway Detail Co. home">
+      <span class="mark" aria-hidden="true"></span>
+      Fairway Detail Co.
+    </a>
+
+    <nav class="nav-links" id="primary-nav" aria-label="Primary">
+      <a href="#services">Services</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#membership">Membership</a>
+      <a href="#for-clubs">For Clubs</a>
+      <!-- TODO: wire "Book a Detail" to live Square/Calendly booking link -->
+      <a href="#contact" class="btn btn-primary">Book a Detail</a>
+    </nav>
+
+    <div class="nav-cta">
+      <!-- TODO: wire "Book a Detail" to live Square/Calendly booking link -->
+      <a href="#contact" class="btn btn-primary desktop-only">Book a Detail</a>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Toggle menu">
+        <span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
+    <div class="contour" aria-hidden="true"></div>
+    <div class="wrap hero-inner">
+      <p class="eyebrow">Dallas &ndash; Fort Worth &middot; Member Amenity</p>
+      <h1>You play. We detail. <span class="accent">Drive home brand new.</span></h1>
+      <p class="subhead">
+        Drop your keys at the bag drop before your tee time. Our technicians detail your car on-site
+        while you play your round. Eighteen holes later, you're driving home in a car that looks
+        better than the day you bought it.
+      </p>
+      <div class="hero-ctas">
+        <!-- TODO: replace with live Square/Calendly booking link -->
+        <a href="#contact" class="btn btn-primary">Book a Detail</a>
+        <a href="#for-clubs" class="btn btn-secondary">Partner Your Club</a>
+      </div>
+    </div>
+    <div class="wrap">
+      <div class="hero-stats">
+        <div>
+          <strong>4&ndash;4.5 hrs</strong>
+          <span>Turned around before you finish your round</span>
+        </div>
+        <div>
+          <strong>On-Site</strong>
+          <span>We come to the club &mdash; no drop-off, no pickup</span>
+        </div>
+        <div>
+          <strong>Insured</strong>
+          <span>Uniformed technicians, fully insured on club grounds</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="how" id="how-it-works">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" style="justify-content:center">How It Works</p>
+        <h2>Detailed while you golf. That's it.</h2>
+        <p>No scheduling drop-off windows, no second trip to a car wash. Four simple steps built around your tee time.</p>
+      </div>
+
+      <ol class="steps" style="list-style:none; padding:0; margin:0;">
+        <li class="step">
+          <div class="step-num" aria-hidden="true">1</div>
+          <h3>Book to match your tee time</h3>
+          <p>Reserve your detail online or through your club &mdash; we schedule around when you're actually playing.</p>
+        </li>
+        <li class="step">
+          <div class="step-num" aria-hidden="true">2</div>
+          <h3>Drop keys at the bag drop</h3>
+          <p>Hand off your keys the way you always do. Our technician checks in and gets to work immediately.</p>
+        </li>
+        <li class="step">
+          <div class="step-num" aria-hidden="true">3</div>
+          <h3>We detail in the lot while you play</h3>
+          <p>Your car is hand-detailed on-site in the member lot &mdash; turf-safe products, full water reclamation.</p>
+        </li>
+        <li class="step">
+          <div class="step-num" aria-hidden="true">4</div>
+          <h3>Drive home brand new</h3>
+          <p>Finish your round, grab your keys at the bag drop, and drive home in a freshly detailed car.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============ SERVICES ============ -->
+  <section class="services" id="services">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" style="justify-content:center">Services</p>
+        <h2>Pick your detail</h2>
+        <p>Every package is sized to fit inside a single round of golf &mdash; from a quick refresh to a full paint-correction detail.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>The Turn</h3>
+          <p class="desc">A fast, thorough refresh &mdash; perfect for a quick nine or a weekday round.</p>
+          <p class="price">$75&ndash;95</p>
+          <ul>
+            <li>Hand wash &amp; dry, exterior</li>
+            <li>Wheels &amp; tires cleaned</li>
+            <li>Interior vacuum, all rows</li>
+            <li>Interior wipe-down &amp; console detail</li>
+            <li>Windows &amp; mirrors, in &amp; out</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark btn-block" style="color:var(--white); border-color:rgba(255,255,255,0.4);">Book This</a>
+        </article>
+
+        <article class="card featured">
+          <span class="badge">Most Popular</span>
+          <h3>The Full Round</h3>
+          <p class="desc">Our signature detail &mdash; built for a standard 18-hole window.</p>
+          <p class="price">$185&ndash;245</p>
+          <ul>
+            <li>Everything in The Turn</li>
+            <li>Full interior detail &amp; deep clean</li>
+            <li>Exterior hand wash &amp; spray wax</li>
+            <li>Leather &amp; trim conditioning</li>
+            <li>Tire dressing &amp; wheel gloss</li>
+            <li>Interior &amp; exterior glass polish</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary btn-block">Book This</a>
+        </article>
+
+        <article class="card">
+          <h3>The Championship</h3>
+          <p class="desc">The full treatment for members who want showroom results, every time.</p>
+          <p class="price">$350&ndash;450</p>
+          <ul>
+            <li>Everything in The Full Round</li>
+            <li>One-step paint enhancement &amp; polish</li>
+            <li>Clay bar decontamination</li>
+            <li>Premium paint sealant application</li>
+            <li>Engine bay detail (on request)</li>
+            <li>Priority scheduling</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark btn-block" style="color:var(--white); border-color:rgba(255,255,255,0.4);">Book This</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MEMBERSHIP ============ -->
+  <section class="membership" id="membership">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow" style="justify-content:center">Membership</p>
+        <h2>Make it a habit, not an errand</h2>
+        <p>Monthly plans for members who want their car detailed every time they play &mdash; billed simply, no contracts.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>Clubhouse</h3>
+          <p class="desc">For the once-a-month refresh.</p>
+          <p class="price">$99<span>/mo</span></p>
+          <ul>
+            <li>1 Turn (express) detail / month</li>
+            <li>Priority tee-time booking</li>
+            <li>Member-only scheduling window</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark btn-block">Join Clubhouse</a>
+        </article>
+
+        <article class="card featured">
+          <span class="badge">Best Value</span>
+          <h3>Members'</h3>
+          <p class="desc">Our most popular plan for regular players.</p>
+          <p class="price">$159<span>/mo</span></p>
+          <ul>
+            <li>1 Full Round detail / month</li>
+            <li>Priority tee-time booking</li>
+            <li>10% off all add-ons</li>
+            <li>Member-only scheduling window</li>
+          </ul>
+          <a href="#contact" class="btn btn-primary btn-block">Join Members'</a>
+        </article>
+
+        <article class="card">
+          <h3>Championship</h3>
+          <p class="desc">For members who play &mdash; and detail &mdash; often.</p>
+          <p class="price">$279<span>/mo</span></p>
+          <ul>
+            <li>1 Full Round + 1 Turn detail / month</li>
+            <li>First-in-line scheduling</li>
+            <li>15% off all add-ons</li>
+            <li>Dedicated technician preference</li>
+          </ul>
+          <a href="#contact" class="btn btn-outline-dark btn-block">Join Championship</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOR CLUBS ============ -->
+  <section class="clubs" id="for-clubs">
+    <div class="wrap clubs-grid">
+      <div>
+        <p class="eyebrow">For Clubs</p>
+        <h2>A five-star amenity your members will actually use</h2>
+        <p class="lead">
+          We partner directly with clubs to offer on-site detailing as a member benefit &mdash;
+          fully insured, turf-safe, and effortless for your staff to support.
+        </p>
+        <!-- TODO: wire "Partner Your Club" to a GM-facing intake form or Calendly link -->
+        <a href="#contact" class="btn btn-primary">Partner Your Club</a>
+      </div>
+
+      <ul class="club-points">
+        <li>
+          <div class="icon" aria-hidden="true"><span></span></div>
+          <div>
+            <strong>Zero cost to the club</strong>
+            <p>Members book and pay directly &mdash; no budget line, no staffing burden on your team.</p>
+          </div>
+        </li>
+        <li>
+          <div class="icon" aria-hidden="true"><span></span></div>
+          <div>
+            <strong>Turf-safe, water-reclaimed</strong>
+            <p>Low-impact products and full water reclamation keep your lot and grounds protected.</p>
+          </div>
+        </li>
+        <li>
+          <div class="icon" aria-hidden="true"><span></span></div>
+          <div>
+            <strong>Insured &amp; uniformed technicians</strong>
+            <p>Every technician is background-checked, uniformed, and covered by commercial insurance.</p>
+          </div>
+        </li>
+        <li>
+          <div class="icon" aria-hidden="true"><span></span></div>
+          <div>
+            <strong>Optional revenue share</strong>
+            <p>Clubs can opt into a revenue-share arrangement in lieu of, or alongside, the free pilot.</p>
+          </div>
+        </li>
+        <li>
+          <div class="icon" aria-hidden="true"><span></span></div>
+          <div>
+            <strong>Free 30-day pilot</strong>
+            <p>Try it with no commitment &mdash; we'll run a full month before any agreement is signed.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT / BOOKING ============ -->
+  <section class="contact" id="contact">
+    <div class="wrap contact-grid">
+      <div class="contact-info">
+        <p class="eyebrow">Get Started</p>
+        <h2>Book a detail or talk to us about your club</h2>
+        <p class="lead">
+          We're currently onboarding our first clubs and members across Dallas&ndash;Fort Worth.
+          Reach out below and we'll follow up to confirm your first appointment.
+        </p>
+
+        <ul class="contact-list">
+          <li><span class="dot" aria-hidden="true"></span> <!-- TODO: replace with real business phone --> [phone]</li>
+          <li><span class="dot" aria-hidden="true"></span> <!-- TODO: replace with real business email --> [email]</li>
+          <li><span class="dot" aria-hidden="true"></span> Dallas&ndash;Fort Worth, Texas</li>
+        </ul>
+
+        <div class="notice">
+          Online booking is coming soon. In the meantime, submit the form and our team will
+          reach out to confirm your appointment or club partnership.
+          <!-- TODO: replace this form with embedded Square Appointments or Calendly booking widget -->
+        </div>
+      </div>
+
+      <form class="booking-form" aria-label="Booking request form">
+        <!-- TODO: this form is a non-functional placeholder. Wire submission to Square/Calendly or a form backend (e.g. Formspree) before launch. -->
+        <div class="form-row">
+          <div class="field">
+            <label for="fname">First name</label>
+            <input type="text" id="fname" name="fname" autocomplete="given-name" required>
+          </div>
+          <div class="field">
+            <label for="lname">Last name</label>
+            <input type="text" id="lname" name="lname" autocomplete="family-name" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" autocomplete="tel" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="club">Your club (optional)</label>
+            <input type="text" id="club" name="club" placeholder="e.g. Preston Trail Golf Club">
+          </div>
+          <div class="field">
+            <label for="interest">I'm interested in</label>
+            <select id="interest" name="interest">
+              <option value="single-detail">A single detail (The Turn / Full Round / Championship)</option>
+              <option value="membership">A monthly membership</option>
+              <option value="club-partnership">Partnering my club</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Tee time / notes</label>
+          <textarea id="notes" name="notes" placeholder="Preferred date, tee time, or anything else we should know"></textarea>
+        </div>
+
+        <div class="form-foot">
+          <button type="submit" class="btn btn-primary">Request Booking</button>
+          <small>We'll respond within one business day.</small>
+        </div>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#top" class="wordmark" aria-label="Fairway Detail Co. home">
+          <span class="mark" aria-hidden="true"></span>
+          Fairway Detail Co.
+        </a>
+        <p>Premium on-site mobile detailing for golf &amp; country club members across Dallas&ndash;Fort Worth.</p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <ul>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#membership">Membership</a></li>
+            <li><a href="#for-clubs">For Clubs</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <!-- TODO: replace with real business phone -->
+            <li>[phone]</li>
+            <!-- TODO: replace with real business email -->
+            <li>[email]</li>
+            <li>Dallas&ndash;Fort Worth, TX</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <span>&copy; 2026 Fairway Detail Co. All rights reserved.</span>
+      <span>Dallas&ndash;Fort Worth, Texas</span>
+    </div>
+    <!-- TODO: swap in the actual partner club name once a partnership is signed -->
+    <p class="footer-club-line">Serving [Club Name] members.</p>
+  </div>
+</footer>
+
+<script>
+  // Mobile nav toggle
+  (function () {
+    var toggle = document.getElementById('navToggle');
+    var nav = document.getElementById('primary-nav');
+    if (!toggle || !nav) return;
+    toggle.addEventListener('click', function () {
+      var isOpen = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    nav.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        nav.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>
