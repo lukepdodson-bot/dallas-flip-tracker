@@ -1,5 +1,27 @@
 # 02 — Brand & Positioning
 
+## Name clearance research (2026-07-23)
+
+Luke added a requirement: the name must also support a future **golf apparel / merch
+brand**. That reshaped the pick.
+
+- **"Birdie Club" / "The Birdie Club" — AVOID.** Two live trademarks: *BIRDIE CLUB*
+  (Lucky Bird Golf, LLC, 2020 — covers a golf app **and women's clothing**) and *THE
+  BIRDIE CLUB* (Brandify Works LLC, 2023 — golf accessories). A "Birdie Golf Club"
+  apparel brand also exists. More broadly, **"Birdie ___" is the most saturated corner of
+  golf apparel** (Birdie Brand, Birdieboss, Birdie & Co, Bad Birdie, Richard A. Leslie
+  Co.'s "Birdie Brand Golf"/"Birdie Jackets"). Bad for merch differentiation.
+- **"Caddyshine" — RECOMMENDED.** No existing golf/detailing/apparel brand surfaced;
+  appears open. Descriptive of the service (a *caddy for your car* + *shine*) and
+  distinctive enough to carry an apparel line. Flexes to **"The Caddyshine Club"** for a
+  members' tier. Minor note: phonetic proximity to the film *Caddyshack* — glance at it.
+- **"The Turn" — weak for ownership.** No exact apparel brand, but "Turn" is generic and
+  common at courses; hard to trademark/own.
+
+> These are preliminary web + USPTO-listing scans, **not legal clearance.** Before
+> filing/printing, Luke should run a proper USPTO clearance search, `.com` check, and TX
+> DBA availability.
+
 ## Positioning statement
 
 For golf & country club members who value their time and their vehicles,
