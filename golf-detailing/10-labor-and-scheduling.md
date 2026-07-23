@@ -1,4 +1,4 @@
-# Labor, Hiring & Scheduling — Birdie Detail Co.
+# Labor, Hiring & Scheduling — Caddy 19
 
 *Dallas–Fort Worth premium mobile detailing at golf/country clubs. All figures are 2026 estimates — verify current pricing before signing any contract.*
 
@@ -10,7 +10,7 @@ Luke's read is correct: **labor is the hardest part of this business.** Everythi
 
 ### 1. The core challenge, stated plainly
 
-At most detailing shops, a bad day means a customer complains and you offer a redo. At **Birdie Detail Co.**, a bad day can mean:
+At most detailing shops, a bad day means a customer complains and you offer a redo. At **Caddy 19**, a bad day can mean:
 
 - A tech scratches a member's $150K car, and the member is a decision-maker at the club or knows the GM socially.
 - A tech is rude, sloppy, or unprofessional on club grounds while members are walking to the first tee — the club's reputation is on the line, not just yours.
@@ -49,7 +49,7 @@ As volume and confidence in the team grow, the bonus percentage can increase and
 
 ### 4. W-2 vs. 1099 — read this before you decide
 
-Because Birdie Detail Co. controls **when** techs work (specific shifts), **where** they work (assigned club and time), **how** the work is done (quality checklist, uniform, company process), and **quality-checks the output**, this looks like classic employee (W-2) territory, not independent-contractor (1099) territory, under both IRS common-law rules and Texas Workforce Commission guidance. Misclassifying scheduled, quality-controlled shift workers as 1099 contractors is one of the most commonly audited/penalized practices for small service businesses — back payroll taxes, penalties, and potential unemployment-insurance liability are all real exposure.
+Because Caddy 19 controls **when** techs work (specific shifts), **where** they work (assigned club and time), **how** the work is done (quality checklist, uniform, company process), and **quality-checks the output**, this looks like classic employee (W-2) territory, not independent-contractor (1099) territory, under both IRS common-law rules and Texas Workforce Commission guidance. Misclassifying scheduled, quality-controlled shift workers as 1099 contractors is one of the most commonly audited/penalized practices for small service businesses — back payroll taxes, penalties, and potential unemployment-insurance liability are all real exposure.
 
 **This is not legal or tax advice, and the final call is Luke's to make with a bookkeeper or employment attorney before the first hire is paid.** The scheduling tool in Part B (assigned shifts, specific clubs, specific times) will itself generate a paper trail that supports W-2 classification — worth keeping in mind either way.
 
@@ -64,7 +64,7 @@ Because Birdie Detail Co. controls **when** techs work (specific shifts), **wher
 
 > **Mobile Detailing Technician — Premium Golf & Country Club Service (Dallas–Fort Worth)**
 >
-> Birdie Detail Co. details members' cars at DFW's top golf and country clubs — while they're out on the course, not sitting in a shop. We're looking for a detail-oriented technician who takes pride in doing things right, works well without someone standing over them, and can be trusted around expensive cars on private club property.
+> Caddy 19 details members' cars at DFW's top golf and country clubs — while they're out on the course, not sitting in a shop. We're looking for a detail-oriented technician who takes pride in doing things right, works well without someone standing over them, and can be trusted around expensive cars on private club property.
 >
 > **What you'll do:** Full interior/exterior detailing on member vehicles at assigned clubs, on a set schedule you help choose. Most work is weekend mornings; some weekday shifts available.
 >
@@ -91,10 +91,10 @@ Because Birdie Detail Co. controls **when** techs work (specific shifts), **wher
 ### 7. Trust & risk controls
 
 - **Key handling protocol** — keys are checked out and back in by name/time (even a simple sign-out sheet or app log); never left in an unlocked cart or bag; single point of accountability if something goes missing.
-- **Before/after photos on every car** — timestamped photos of the vehicle on arrival and completion, stored per job. This protects the tech (proof of pre-existing damage) and protects Birdie Detail Co. and the club (proof nothing was damaged during service). Non-negotiable for premium/high-value vehicles.
+- **Before/after photos on every car** — timestamped photos of the vehicle on arrival and completion, stored per job. This protects the tech (proof of pre-existing damage) and protects Caddy 19 and the club (proof nothing was damaged during service). Non-negotiable for premium/high-value vehicles.
 - **Damage-claim process** — a clear, written procedure: tech reports immediately, photos pulled, business insurance notified, member contacted by Luke directly (never left to the tech). Speed and transparency here are what preserve a club relationship after an incident.
 - **Bonding / insurance** — carry general liability and consider garage-keepers or bailee coverage (you have custody of customers' property); ask your insurance broker specifically about coverage for detailing/mobile service on client-owned vehicles. Confirm requirements with each club — many will require a certificate of insurance naming the club as additional insured before granting access.
-- **Conduct standards on club property** — no phone use except for job-related photos/logging, no radio/music audible to members, professional dress and language at all times, techs briefed that they are guests representing both Birdie Detail Co. and the club to its members.
+- **Conduct standards on club property** — no phone use except for job-related photos/logging, no radio/music audible to members, professional dress and language at all times, techs briefed that they are guests representing both Caddy 19 and the club to its members.
 
 ---
 
@@ -120,7 +120,7 @@ This is a fairly standard "shift marketplace" pattern — availability + open-sh
 | **Time to launch** | Same day — sign up, add employees, post shifts | Days to a few weeks for a functional MVP |
 | **Fit to "club-based jobs"** | Generic "shift" model; club = a text field or tag, not a first-class concept | Purpose-built: clubs, bookings, and jobs can be modeled exactly as the business works |
 | **Availability + open-shift claim** | Built-in on most mid-tier plans (see table below) | Has to be built from scratch |
-| **Branding** | Third-party app, not Birdie-branded | Fully Birdie Detail Co. branded, could double as a recruiting/professionalism signal |
+| **Branding** | Third-party app, not Caddy 19-branded | Fully Caddy 19 branded, could double as a recruiting/professionalism signal |
 | **Maintenance** | None — vendor's problem | Luke's (or a developer's) problem indefinitely |
 | **Right for** | Launch through small crew (roughly up to ~10–15 techs) | Once crew size, club count, or booking complexity outgrows what a generic scheduling app models well |
 
@@ -130,12 +130,12 @@ This is a fairly standard "shift marketplace" pattern — availability + open-sh
 |---|---|---|---|---|
 | **Homebase** | Free tier for 1 location / up to ~20 employees; paid tiers roughly $20–100+/mo as features (advanced scheduling, HR, payroll) are added | Yes — employees set availability, request time off, managers approve | Yes — open shifts can be posted and claimed on paid tiers | Best-known free tier; started as a scheduling tool for hourly retail/restaurant work, which maps well onto shift-based detailing crews |
 | **When I Work** | ~$2.50–$8/user/month depending on tier (add-ons like time & attendance push it higher) | Yes | Yes, on Pro tier and above | Strong scheduling-first tool; per-user pricing scales predictably as crew grows |
-| **Connecteam** | Free "Small Business" plan for up to 10 users; paid tiers roughly $35–$119/month (per hub, not per user) above that | Yes | Yes — open shift posting is a core scheduling feature; open-shift *approval* workflow on the Advanced tier | Free-for-10 makes it attractive at Birdie's Phase 2 crew size; flat per-hub pricing (not per-user) is good once the crew grows past a handful |
-| **Deputy** | Roughly $1.50–$6.50/user/month depending on source and tier | Yes | Yes | Geared slightly more toward larger, multi-location teams; likely more capability than Birdie needs at launch |
+| **Connecteam** | Free "Small Business" plan for up to 10 users; paid tiers roughly $35–$119/month (per hub, not per user) above that | Yes | Yes — open shift posting is a core scheduling feature; open-shift *approval* workflow on the Advanced tier | Free-for-10 makes it attractive at Caddy 19's Phase 2 crew size; flat per-hub pricing (not per-user) is good once the crew grows past a handful |
+| **Deputy** | Roughly $1.50–$6.50/user/month depending on source and tier | Yes | Yes | Geared slightly more toward larger, multi-location teams; likely more capability than Caddy 19 needs at launch |
 
 **Recommendation for launch: start with Homebase's free tier or Connecteam's free-up-to-10 plan.** Both already do exactly what Luke described — techs set availability, admin posts shifts, techs claim open shifts, admin sees coverage — at $0/month for the Phase 2 crew size (1–2 part-time techs, maybe growing to 4–6). Connecteam's free tier covers up to 10 users and includes basic scheduling; Homebase's free tier is capped tighter on features but is the most scheduling-native of the group. Either is a same-day setup with zero build cost. Move to a paid tier of whichever one is chosen once the crew or club count outgrows the free plan's limits — that's still far cheaper and faster than building custom.
 
-**When to build custom:** once Birdie Detail Co. has enough clubs and crew that "club" needs to be a real object in the system (not a text tag) — e.g., club-specific instructions, gate codes, contact info, recurring club-day templates, tech ratings per club — and once the volume justifies a few thousand dollars and real development time. At that point a purpose-built, Birdie-branded tool pays for itself in time saved and professionalism. This repository could host that MVP when the time comes; the spec below is written so it's ready to build without re-deriving the requirements.
+**When to build custom:** once Caddy 19 has enough clubs and crew that "club" needs to be a real object in the system (not a text tag) — e.g., club-specific instructions, gate codes, contact info, recurring club-day templates, tech ratings per club — and once the volume justifies a few thousand dollars and real development time. At that point a purpose-built, Caddy 19-branded tool pays for itself in time saved and professionalism. This repository could host that MVP when the time comes; the spec below is written so it's ready to build without re-deriving the requirements.
 
 ### 10. Spec for the eventual custom tool
 

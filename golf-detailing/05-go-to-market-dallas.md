@@ -1,6 +1,6 @@
 # Go-to-Market: Dallas–Fort Worth
 
-**Fairway Detail Co. (working name)** — on-site mobile detailing for golf & country club members. Members drop keys at the bag drop, play their round, drive home in a clean car. Verify all club names, cities, membership figures, and contact details before outreach — club rosters, GM tenure, and management structures change.
+**Caddy 19 (working name)** — on-site mobile detailing for golf & country club members. Members drop keys at the bag drop, play their round, drive home in a clean car. Verify all club names, cities, membership figures, and contact details before outreach — club rosters, GM tenure, and management structures change.
 
 ---
 
@@ -37,7 +37,7 @@ We sell to **clubs, not consumers** — a club that says yes hands us its entire
 
 Preston Trail Golf Club, Dallas National Golf Club, Brook Hollow Golf Club, Vaquero Club, Maridoe Golf Club, Trinity Forest Golf Club.
 
-These are prestigious, protective of their member experience, and have long, relationship-driven sales cycles — often requiring a member-sponsor introduction rather than a cold approach. Do not lead with these. Approach only after Fairway Detail Co. has 2–3 signed clubs, real testimonials, and (ideally) a warm introduction through an existing member or GM relationship. Verify current GM and membership chair contacts close to the time of outreach, since these roles turn over and access is gated tightly.
+These are prestigious, protective of their member experience, and have long, relationship-driven sales cycles — often requiring a member-sponsor introduction rather than a cold approach. Do not lead with these. Approach only after Caddy 19 has 2–3 signed clubs, real testimonials, and (ideally) a warm introduction through an existing member or GM relationship. Verify current GM and membership chair contacts close to the time of outreach, since these roles turn over and access is gated tightly.
 
 ---
 

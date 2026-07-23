@@ -1,4 +1,4 @@
-# Birdie Detail Co. — Business Setup Workspace
+# Caddy 19 — Business Setup Workspace
 
 **Concept:** On-site mobile car detailing for golf & country club members. We detail
 the member's car in the club lot while they play their round. They drop keys at the
@@ -10,10 +10,10 @@ business bank account are in place (Luke). Books, legal, and club-ownership conv
 are owned by Luke. Everything else (brand, model, pricing, partnership pitch,
 go-to-market, budget, capex, labor, ops, launch) is built out here.
 
-> **Name in transition:** working name is now **Birdie Detail Co.** (was "Fairway Detail
-> Co."). The website and docs 08–10 use Birdie; docs 01–07 and the brand-assets files
-> still say Fairway. Once Luke locks the final Birdie name, everything gets unified in one
-> pass. See `02-brand-and-positioning.md` for the name options.
+> **Name: Caddy 19** (locked 2026-07-23). *Caddy* = handled-while-you-play; *19* = the
+> 19th hole. Built for headroom into a golf apparel/lifestyle brand. All assets are
+> unified under this name. Still on Luke's list: formal USPTO clearance + `.com` + TX DBA
+> filing. See `02-brand-and-positioning.md` for the naming decision record.
 
 ## Document index
 
@@ -35,7 +35,7 @@ go-to-market, budget, capex, labor, ops, launch) is built out here.
 
 ## The one-line pitch
 
-> You play. We detail. Drive home brand new. — *Your car just made birdie.*
+> You play. We detail. Drive home brand new. — *Detailed by the 19th hole.*
 
 ## Guiding constraints (from Luke)
 

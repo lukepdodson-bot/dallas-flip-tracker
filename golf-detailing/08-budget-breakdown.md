@@ -1,4 +1,4 @@
-# Birdie Detail Co. — Use-of-Funds Budget Breakdown
+# Caddy 19 — Use-of-Funds Budget Breakdown
 
 *Dallas–Fort Worth mobile golf-club detailing. All figures are 2026 estimates for planning purposes, not quotes or commitments. Rig/equipment capex is detailed in full in a dedicated capex doc; totals are referenced here for use-of-funds context.*
 

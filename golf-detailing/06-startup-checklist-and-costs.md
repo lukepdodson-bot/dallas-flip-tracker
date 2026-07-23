@@ -1,4 +1,4 @@
-# Startup Checklist & Costs — Fairway Detail Co.
+# Startup Checklist & Costs — Caddy 19
 
 *Working document — all costs are 2026 estimates, ballpark figures for planning. Get real quotes before purchasing/binding anything.*
 
@@ -120,7 +120,7 @@ The **lean one-time launch budget (~$3,100) is the number to approve to get the 
 ### Weeks 1–2 — Foundation, brand, software
 - [ ] **(Luke)** Finalize LLC formation and EIN
 - [ ] **(Luke)** Open business bank account
-- [ ] **(Luke)** Confirm final business name (Fairway Detail Co. or alternative)
+- [ ] **(Luke)** Confirm final business name (Caddy 19 or alternative)
 - [ ] **(Luke)** Approve this budget (lean vs. nicer path)
 - [ ] Design logo & basic brand kit
 - [ ] Register domain and build one-page website

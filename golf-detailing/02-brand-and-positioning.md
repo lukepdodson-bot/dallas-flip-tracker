@@ -1,5 +1,12 @@
 # 02 — Brand & Positioning
 
+> ## ✅ SELECTED NAME: **Caddy 19**
+> Chosen 2026-07-23. *Caddy* = handled-while-you-play (a caddy for your car); *19* = the
+> 19th hole/clubhouse. Picked for its distinctiveness and headroom to become a
+> golf apparel/lifestyle brand. Members' tier concept: **"The 19 Club."**
+> **Still to do (Luke):** formal USPTO clearance + `.com` + TX DBA filing before printing/filing.
+> The naming research below is kept as the decision record.
+
 ## Name clearance research (2026-07-23)
 
 Luke added a requirement: the name must also support a future **golf apparel / merch
@@ -26,9 +33,9 @@ brand**. That reshaped the pick.
   check in clearance; (2) not self-explanatory, so the tagline must carry the "detailed
   while you golf" message. Members' tier could be "The 19 Club."
 
-**Current front-runners:** **Caddy 19** (best for a merch/lifestyle brand) vs.
-**Caddyshine** (best for service clarity). Both appear open; both need formal USPTO +
-`.com` + TX DBA clearance before filing.
+**Outcome:** **Caddy 19 was selected** (best for the merch/lifestyle ambition).
+Caddyshine was the runner-up. Both need formal USPTO + `.com` + TX DBA clearance before
+filing.
 
 > These are preliminary web + USPTO-listing scans, **not legal clearance.** Before
 > filing/printing, Luke should run a proper USPTO clearance search, `.com` check, and TX
@@ -37,7 +44,7 @@ brand**. That reshaped the pick.
 ## Positioning statement
 
 For golf & country club members who value their time and their vehicles,
-**[Brand]** is the on-site detailing service that transforms your car while you play,
+**Caddy 19** is the on-site detailing service that transforms your car while you play,
 so you finish your round and drive home like it's new — without ever leaving the club or
 changing your day.
 
@@ -46,10 +53,9 @@ changing your day.
   mobile detailer.
 - **Feels like:** A club amenity — valet, caddie, shoe-shine — not a vendor.
 
-## Name shortlist
+## Name shortlist — *(historical: the original pre-Caddy 19 shortlist, superseded)*
 
-Recommendation first. All are checked for obvious conflicts, but **do a formal name/URL/
-trademark check before you register the LLC** (that's on your side).
+> Kept for the record. The final name is **Caddy 19** (see banner above).
 
 | Name | Why it works | Watch-outs |
 |------|--------------|------------|
@@ -66,6 +72,8 @@ if URL/trademark for Fairway is taken.
 ## Taglines
 
 - **You play. We detail. Drive home brand new.** (primary — punchy, states the model)
+- **Detailed by the 19th hole.** (Caddy 19 secondary hook — plays on the name)
+- Your car's caddy. (short, brand-forward — good for merch)
 - Drop your keys at the bag drop. Drive home like new. (long form for print)
 - Your best round yet — and a car to match. (aspirational)
 
@@ -74,8 +82,9 @@ if URL/trademark for Fairway is taken.
 - **Palette:** deep fairway green + clean white + a warm metallic/gold or charcoal
   accent. Reads "private club," not "car wash."
 - **Type:** a confident serif or refined sans for the wordmark; keep it uncluttered.
-- **Mark:** simple, works small (polo shirt, car-magnet, bag tag). Options: a golf-flag
-  that doubles as a shine/sparkle, or a minimalist "FD" monogram.
+- **Mark:** the **Caddy 19 crest** — a circular badge with "19" and a golf flag as the
+  hero, arched "CADDY" text, and a shine sparkle. Works small (polo, car-magnet, bag tag);
+  the "19" alone doubles as a merch/apparel chip.
 - **Tone:** premium, understated, member-club polish. Every touchpoint (uniform, rig,
   booking page, invoice) should look like it belongs at the club.
 

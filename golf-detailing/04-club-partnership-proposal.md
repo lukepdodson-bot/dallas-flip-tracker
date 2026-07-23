@@ -1,11 +1,11 @@
-# Fairway Detail Co.
+# Caddy 19
 ### A Member Amenity Proposal for [Club Name]
 
 **You play. We detail. Drive home brand new.**
 
 ---
 
-Fairway Detail Co. brings premium, on-site car detailing to your members while they play — dropping keys at the bag drop before their round and picking up a freshly detailed car after it. There is no cost to the club, no staff burden, and no change to your operations. It's simply a five-star amenity that makes membership feel a little more like membership.
+Caddy 19 brings premium, on-site car detailing to your members while they play — dropping keys at the bag drop before their round and picking up a freshly detailed car after it. There is no cost to the club, no staff burden, and no change to your operations. It's simply a five-star amenity that makes membership feel a little more like membership.
 
 ---
 
@@ -22,7 +22,7 @@ Fairway Detail Co. brings premium, on-site car detailing to your members while t
 - **A differentiated amenity** few clubs in DFW currently offer — a tangible point of difference in member recruiting and retention conversations.
 - **Zero cost, zero staffing.** We bring our own team, equipment, and insurance. Nothing is asked of your pro shop or grounds crew beyond a small footprint in the lot.
 - **Optional revenue share.** If you'd like the amenity to generate income rather than simply be a perk, a revenue-share structure is available (details below).
-- **Exclusivity available.** The partnership can be structured so Fairway Detail Co. is the club's exclusive detailing provider — no competing vans soliciting members in your lot.
+- **Exclusivity available.** The partnership can be structured so Caddy 19 is the club's exclusive detailing provider — no competing vans soliciting members in your lot.
 - **Low-risk to try.** The pilot below is completely free, so there's no commitment required to see how members respond.
 
 ## How It Works
@@ -54,7 +54,7 @@ We understand our work happens on your property, in front of your members, and w
 We keep this simple. Three ways to structure the relationship — pick what fits, change later if you'd like:
 
 1. **Free member amenity + revenue share (10–15% to the club).** The easiest yes — zero cost, and the club earns a share of every booking. *(Ongoing default after the pilot.)*
-2. **Flat monthly amenity fee.** For clubs that want Fairway Detail Co. as their exclusive, dedicated provider.
+2. **Flat monthly amenity fee.** For clubs that want Caddy 19 as their exclusive, dedicated provider.
 3. **Comped details for staff + member gift certificates.** Complimentary details for your GM, head pro, and key staff, plus a set of gift certificates to gift or raffle to members. *(Recommended for the pilot below.)*
 
 **Our recommendation:** we start with a **free 30-day pilot** under option 3 — no cost, no commitment, comped details for your leadership team so you can experience it firsthand, and gift certificates to introduce a handful of members. If it's a hit (it will be), we transition to option 1 as the ongoing arrangement.
@@ -65,5 +65,5 @@ Let's put 20 minutes on the calendar to walk through logistics — lot placement
 
 ---
 
-**Fairway Detail Co.**
+**Caddy 19**
 [phone] | [email] | [website]

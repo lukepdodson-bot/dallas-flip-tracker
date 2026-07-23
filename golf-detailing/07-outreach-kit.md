@@ -31,7 +31,7 @@ you (Luke) to send/say. Swap the `[brackets]`. Pair every outreach with the one-
 
 > Hi [Name],
 >
-> I run Fairway Detail Co. — we detail members' cars **on-site while they play their
+> I run Caddy 19 — we detail members' cars **on-site while they play their
 > round**. They drop their keys at the bag drop, tee off, and drive home to a car that
 > looks new. No waiting, no errand, no leaving the club.
 >
@@ -43,7 +43,7 @@ you (Luke) to send/say. Swap the `[brackets]`. Pair every outreach with the one-
 > I grab 20 minutes to show you how it works?
 >
 > Best,
-> Luke [Last] — Fairway Detail Co.
+> Luke [Last] — Caddy 19
 > [phone] • [email] • [website]
 
 ## Touch 2 — Follow-up (2–3 business days later, attach the proposal)
@@ -63,7 +63,7 @@ you (Luke) to send/say. Swap the `[brackets]`. Pair every outreach with the one-
 
 ## Touch 3 — Phone / voicemail script
 
-> "Hi [Name], this is Luke with Fairway Detail Co. I sent a note about detailing members'
+> "Hi [Name], this is Luke with Caddy 19 I sent a note about detailing members'
 > cars on-site while they golf — a free amenity for your members, no cost to the club,
 > fully insured and turf-safe. I'd love 20 minutes to show you how it works. I'm at
 > [phone] — thanks!"

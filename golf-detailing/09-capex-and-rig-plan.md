@@ -1,4 +1,4 @@
-# Capex & Mobile Rig Gameplan — Birdie Detail Co.
+# Capex & Mobile Rig Gameplan — Caddy 19
 
 **Market:** Dallas–Fort Worth | **Prepared:** July 2026 | **All figures are 2026 estimates**
 
