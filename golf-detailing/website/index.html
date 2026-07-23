@@ -3,36 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fairway Detail Co. | Mobile Detailing for DFW Golf &amp; Country Club Members</title>
+<title>Birdie Detail Co. | Mobile Detailing for DFW Golf &amp; Country Club Members</title>
 <meta name="description" content="Premium on-site mobile car detailing for golf and country club members in Dallas–Fort Worth. Drop your keys at the bag drop, play your round, drive home brand new.">
 
 <style>
   /* ---------- Design Tokens ---------- */
   :root {
-    --fairway-900: #0b2b1f;
-    --fairway-800: #123526;
-    --fairway-700: #1a4632;
-    --fairway-600: #235940;
-    --fairway-500: #2d6b4d;
-    --cream: #f7f4ec;
-    --cream-dim: #efe9da;
-    --charcoal-900: #16181a;
-    --charcoal-700: #2a2d30;
-    --charcoal-500: #565b60;
-    --charcoal-300: #8a9095;
-    --gold-500: #b8933f;
-    --gold-400: #cfa951;
-    --gold-300: #e2c274;
+    --green-900: #0b3d2c;
+    --green-800: #12452f;
+    --green-700: #1c5138;
+    --green-600: #276644;
+    --bone: #f7f5ef;
+    --bone-dim: #efe9dc;
+    --charcoal: #1a2b22;
+    --charcoal-600: #4a564c;
+    --charcoal-400: #7c8880;
+    --gold: #c8a24a;
+    --gold-light: #dcbd76;
     --white: #ffffff;
     --line: rgba(255,255,255,0.14);
-    --line-dark: rgba(11,43,31,0.12);
-    --radius-sm: 6px;
-    --radius-md: 12px;
-    --radius-lg: 20px;
-    --shadow-soft: 0 10px 30px rgba(11,43,31,0.12);
-    --shadow-card: 0 14px 40px rgba(11,43,31,0.10);
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-    --max-w: 1180px;
+    --line-dark: rgba(11,61,44,0.14);
+    --radius-sm: 4px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-card: 0 18px 44px rgba(11,61,44,0.10);
+    --font-serif: Georgia, "Times New Roman", Times, serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --max-w: 1080px;
   }
 
   * { box-sizing: border-box; }
@@ -40,60 +37,61 @@
 
   body {
     margin: 0;
-    font-family: var(--font);
-    color: var(--charcoal-900);
-    background: var(--cream);
+    font-family: var(--font-sans);
+    color: var(--charcoal);
+    background: var(--bone);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
 
   img, svg { max-width: 100%; display: block; }
-
   a { color: inherit; text-decoration: none; }
 
   .wrap {
     max-width: var(--max-w);
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 28px;
   }
 
   section { position: relative; }
 
   h1, h2, h3, h4 {
     margin: 0;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    line-height: 1.12;
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.18;
   }
 
-  p { margin: 0; line-height: 1.6; }
+  p { margin: 0; line-height: 1.65; }
 
   .eyebrow {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
+    gap: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--gold-500);
+    color: var(--gold);
   }
   .eyebrow::before {
     content: "";
-    width: 22px;
-    height: 1.5px;
-    background: var(--gold-500);
+    width: 20px;
+    height: 1px;
+    background: var(--gold);
     display: inline-block;
   }
+  .eyebrow.center { justify-content: center; }
 
   .section-head {
-    max-width: 640px;
-    margin: 0 auto 48px;
+    max-width: 600px;
+    margin: 0 auto 56px;
     text-align: center;
   }
-  .section-head h2 { font-size: clamp(1.7rem, 3.2vw, 2.4rem); margin-top: 10px; }
-  .section-head p { margin-top: 14px; color: var(--charcoal-500); font-size: 1.05rem; }
+  .section-head h2 { font-size: clamp(1.7rem, 3vw, 2.3rem); margin-top: 14px; }
+  .section-head p { margin-top: 16px; color: var(--charcoal-600); font-size: 1.02rem; }
 
   /* ---------- Buttons ---------- */
   .btn {
@@ -101,100 +99,90 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 14px 28px;
-    border-radius: 999px;
+    padding: 14px 30px;
+    border-radius: 3px;
+    font-family: var(--font-sans);
     font-weight: 600;
-    font-size: 0.95rem;
-    border: 1.5px solid transparent;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     white-space: nowrap;
   }
-  .btn:active { transform: translateY(1px); }
 
   .btn-primary {
-    background: linear-gradient(180deg, var(--gold-400), var(--gold-500));
-    color: var(--fairway-900);
-    box-shadow: 0 8px 22px rgba(184,147,63,0.35);
+    background: var(--gold);
+    color: var(--green-900);
   }
-  .btn-primary:hover { box-shadow: 0 10px 26px rgba(184,147,63,0.5); transform: translateY(-1px); }
+  .btn-primary:hover { opacity: 0.88; }
 
   .btn-secondary {
     background: transparent;
     color: var(--white);
-    border-color: rgba(255,255,255,0.55);
+    border-color: rgba(255,255,255,0.5);
   }
-  .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--white); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--white); }
 
   .btn-outline-dark {
     background: transparent;
-    color: var(--fairway-800);
-    border-color: var(--fairway-800);
+    color: var(--green-900);
+    border-color: var(--line-dark);
   }
-  .btn-outline-dark:hover { background: var(--fairway-800); color: var(--white); }
+  .btn-outline-dark:hover { background: var(--green-900); color: var(--white); border-color: var(--green-900); }
+
+  .btn-outline-light {
+    background: transparent;
+    color: var(--white);
+    border-color: rgba(255,255,255,0.35);
+  }
+  .btn-outline-light:hover { background: rgba(255,255,255,0.1); border-color: var(--white); }
 
   .btn-block { width: 100%; }
+
+  /* ---------- Emblem ---------- */
+  .emblem { flex-shrink: 0; }
 
   /* ---------- Nav ---------- */
   .site-nav {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(11,43,31,0.92);
-    backdrop-filter: saturate(160%) blur(10px);
-    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    background: rgba(11,61,44,0.94);
+    backdrop-filter: saturate(140%) blur(8px);
+    -webkit-backdrop-filter: saturate(140%) blur(8px);
     border-bottom: 1px solid var(--line);
   }
   .site-nav .wrap {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 72px;
+    height: 76px;
   }
   .wordmark {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 1.15rem;
-    font-weight: 800;
+    gap: 12px;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
     color: var(--white);
-    letter-spacing: -0.01em;
-  }
-  .wordmark .mark {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, var(--gold-300), var(--gold-500) 60%, var(--gold-500));
-    position: relative;
-    flex-shrink: 0;
-  }
-  .wordmark .mark::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background-image:
-      radial-gradient(circle at 30% 25%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
-      radial-gradient(circle at 50% 20%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
-      radial-gradient(circle at 65% 32%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
-      radial-gradient(circle at 40% 45%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px),
-      radial-gradient(circle at 60% 50%, rgba(11,43,31,0.35) 1.4px, transparent 1.5px);
+    letter-spacing: 0.01em;
   }
 
   .nav-links {
     display: flex;
     align-items: center;
-    gap: 34px;
+    gap: 36px;
   }
   .nav-links a:not(.btn) {
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     font-weight: 500;
-    color: rgba(247,244,236,0.82);
+    color: rgba(247,245,239,0.82);
     transition: color 0.15s ease;
   }
-  .nav-links a:not(.btn):hover { color: var(--gold-300); }
+  .nav-links a:not(.btn):hover { color: var(--gold-light); }
 
-  .nav-cta { display: flex; align-items: center; gap: 18px; }
+  .nav-cta { display: flex; align-items: center; gap: 20px; }
 
   .nav-toggle {
     display: none;
@@ -213,76 +201,49 @@
     content: "";
     display: block;
     width: 18px;
-    height: 2px;
+    height: 1.5px;
     background: var(--white);
     position: relative;
-    transition: transform 0.2s ease;
   }
   .nav-toggle span::before { position: absolute; top: -6px; }
   .nav-toggle span::after { position: absolute; top: 6px; }
 
   /* ---------- Hero ---------- */
   .hero {
-    background:
-      radial-gradient(ellipse 900px 500px at 85% -10%, rgba(184,147,63,0.25), transparent 60%),
-      linear-gradient(160deg, var(--fairway-900) 0%, var(--fairway-800) 45%, var(--fairway-700) 100%);
+    background: var(--green-900);
     color: var(--white);
     position: relative;
     overflow: hidden;
-    padding: 96px 0 120px;
+    padding: 112px 0 96px;
   }
-  .hero::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 70px);
-    pointer-events: none;
-  }
-  .hero .contour {
-    position: absolute;
-    right: -12%;
-    top: -18%;
-    width: 620px;
-    height: 620px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.08);
-    pointer-events: none;
-  }
-  .hero .contour::before {
-    content: "";
-    position: absolute;
-    inset: 70px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-  .hero .contour::after {
-    content: "";
-    position: absolute;
-    inset: 140px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.08);
-  }
-
   .hero-inner {
     position: relative;
     z-index: 1;
-    max-width: 720px;
+    max-width: 680px;
   }
+  .hero-emblem { margin-bottom: 28px; }
   .hero h1 {
-    margin-top: 18px;
-    font-size: clamp(2.3rem, 5.4vw, 3.75rem);
+    margin-top: 20px;
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
     color: var(--white);
   }
-  .hero h1 .accent { color: var(--gold-300); }
+  .hero h1 .accent { color: var(--gold-light); }
+  .hero .hook {
+    margin-top: 14px;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--gold-light);
+  }
   .hero .subhead {
-    margin-top: 22px;
-    font-size: clamp(1.02rem, 1.6vw, 1.2rem);
-    color: rgba(247,244,236,0.82);
-    max-width: 580px;
+    margin-top: 24px;
+    font-size: 1.06rem;
+    line-height: 1.7;
+    color: rgba(247,245,239,0.78);
+    max-width: 540px;
   }
   .hero-ctas {
-    margin-top: 38px;
+    margin-top: 40px;
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
@@ -291,107 +252,97 @@
   .hero-stats {
     position: relative;
     z-index: 1;
-    margin-top: 64px;
+    margin-top: 72px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 20px;
-    max-width: 640px;
+    gap: 24px;
+    max-width: 620px;
     border-top: 1px solid var(--line);
-    padding-top: 28px;
+    padding-top: 30px;
   }
   .hero-stats div strong {
     display: block;
-    font-size: 1.5rem;
-    color: var(--gold-300);
-    font-weight: 800;
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    color: var(--gold-light);
+    font-weight: 400;
   }
   .hero-stats div span {
-    font-size: 0.82rem;
-    color: rgba(247,244,236,0.7);
+    display: block;
+    margin-top: 4px;
+    font-size: 0.8rem;
+    color: rgba(247,245,239,0.65);
   }
 
   /* ---------- How it works ---------- */
-  .how { padding: 100px 0; background: var(--cream); }
+  .how { padding: 108px 0; background: var(--white); }
   .steps {
     display: grid;
     grid-template-columns: repeat(4, minmax(0,1fr));
-    gap: 24px;
-    counter-reset: step;
+    gap: 28px;
   }
   .step {
-    background: var(--white);
-    border: 1px solid var(--line-dark);
-    border-radius: var(--radius-lg);
-    padding: 32px 26px;
+    padding: 0;
     position: relative;
   }
   .step-num {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    background: var(--fairway-800);
-    color: var(--gold-300);
-    font-weight: 800;
-    font-size: 1.05rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    color: var(--gold);
+    margin-bottom: 16px;
   }
-  .step h3 { font-size: 1.05rem; margin-bottom: 10px; color: var(--fairway-900); }
-  .step p { color: var(--charcoal-500); font-size: 0.94rem; }
-  .step-connector {
-    display: none;
-  }
+  .step h3 { font-size: 1.05rem; margin-bottom: 10px; color: var(--green-900); font-family: var(--font-sans); font-weight: 700; }
+  .step p { color: var(--charcoal-600); font-size: 0.92rem; }
 
   /* ---------- Services ---------- */
-  .services { padding: 100px 0; background: var(--charcoal-900); color: var(--white); }
-  .services .section-head p { color: rgba(247,244,236,0.65); }
-  .services .eyebrow { color: var(--gold-400); }
+  .services { padding: 108px 0; background: var(--bone); }
 
   .cards {
     display: grid;
     grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 26px;
+    gap: 28px;
     align-items: stretch;
   }
   .card {
-    background: var(--charcoal-700);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: var(--white);
+    border: 1px solid var(--line-dark);
     border-radius: var(--radius-lg);
-    padding: 36px 30px;
+    padding: 38px 32px;
     display: flex;
     flex-direction: column;
     position: relative;
   }
   .card.featured {
-    background: linear-gradient(165deg, var(--fairway-700), var(--fairway-900));
-    border-color: var(--gold-500);
-    transform: translateY(-10px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    background: var(--green-900);
+    border-color: var(--green-900);
+    box-shadow: var(--shadow-card);
   }
   .badge {
     position: absolute;
-    top: -13px;
-    left: 30px;
-    background: linear-gradient(180deg, var(--gold-400), var(--gold-500));
-    color: var(--fairway-900);
-    font-size: 0.7rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
+    top: -12px;
+    left: 32px;
+    background: var(--gold);
+    color: var(--green-900);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 6px 14px;
-    border-radius: 999px;
+    border-radius: 2px;
   }
-  .card h3 { font-size: 1.25rem; color: var(--white); }
+  .card h3 { font-size: 1.3rem; color: var(--green-900); }
+  .card.featured h3 { color: var(--white); }
   .card .price {
-    margin-top: 14px;
-    font-size: 2.1rem;
-    font-weight: 800;
-    color: var(--gold-300);
+    margin-top: 16px;
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    color: var(--green-800);
   }
-  .card .price span { font-size: 0.95rem; font-weight: 500; color: rgba(247,244,236,0.55); }
-  .card .desc { margin-top: 10px; color: rgba(247,244,236,0.6); font-size: 0.9rem; }
+  .card.featured .price { color: var(--gold-light); }
+  .card .price span { font-family: var(--font-sans); font-size: 0.85rem; font-weight: 500; color: var(--charcoal-400); }
+  .card.featured .price span { color: rgba(247,245,239,0.55); }
+  .card .desc { margin-top: 12px; color: var(--charcoal-600); font-size: 0.9rem; }
+  .card.featured .desc { color: rgba(247,245,239,0.68); }
   .card ul {
     list-style: none;
     margin: 26px 0 30px;
@@ -405,117 +356,80 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    font-size: 0.92rem;
-    color: rgba(247,244,236,0.85);
+    font-size: 0.9rem;
+    color: var(--charcoal-600);
   }
+  .card.featured ul li { color: rgba(247,245,239,0.85); }
   .card ul li::before {
     content: "";
     flex-shrink: 0;
-    margin-top: 6px;
-    width: 8px;
-    height: 8px;
+    margin-top: 7px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
-    background: var(--gold-400);
+    background: var(--gold);
   }
 
   /* ---------- Membership ---------- */
-  .membership { padding: 100px 0; background: var(--cream-dim); }
-  .membership .cards .card {
-    background: var(--white);
-    border-color: var(--line-dark);
-  }
-  .membership .cards .card h3 { color: var(--fairway-900); }
-  .membership .cards .card .price { color: var(--fairway-700); }
-  .membership .cards .card .price span { color: var(--charcoal-500); }
-  .membership .cards .card .desc { color: var(--charcoal-500); }
-  .membership .cards .card ul li { color: var(--charcoal-700); }
-  .membership .cards .card.featured {
-    background: linear-gradient(165deg, var(--fairway-800), var(--fairway-900));
-  }
-  .membership .cards .card.featured h3,
-  .membership .cards .card.featured .price { color: var(--white); }
-  .membership .cards .card.featured .price { color: var(--gold-300); }
-  .membership .cards .card.featured .desc { color: rgba(247,244,236,0.65); }
-  .membership .cards .card.featured ul li { color: rgba(247,244,236,0.88); }
+  .membership { padding: 108px 0; background: var(--white); }
 
   /* ---------- For Clubs ---------- */
   .clubs {
-    padding: 100px 0;
-    background: linear-gradient(160deg, var(--fairway-900), var(--fairway-700));
+    padding: 108px 0;
+    background: var(--green-900);
     color: var(--white);
     position: relative;
-    overflow: hidden;
-  }
-  .clubs::before {
-    content: "";
-    position: absolute;
-    left: -120px;
-    bottom: -160px;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(184,147,63,0.18), transparent 70%);
   }
   .clubs-grid {
     position: relative;
     z-index: 1;
     display: grid;
-    grid-template-columns: 1.05fr 0.95fr;
-    gap: 60px;
-    align-items: center;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
   }
-  .clubs h2 { font-size: clamp(1.7rem, 3.2vw, 2.3rem); margin-top: 10px; }
-  .clubs p.lead { margin-top: 18px; color: rgba(247,244,236,0.82); font-size: 1.05rem; max-width: 480px; }
-  .clubs .btn { margin-top: 30px; }
+  .clubs h2 { font-size: clamp(1.7rem, 3vw, 2.2rem); margin-top: 14px; color: var(--white); }
+  .clubs p.lead { margin-top: 18px; color: rgba(247,245,239,0.78); font-size: 1.02rem; max-width: 460px; }
+  .clubs .btn { margin-top: 32px; }
 
   .club-points {
     list-style: none;
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 16px;
+    gap: 20px;
   }
   .club-points li {
     display: flex;
     gap: 16px;
     align-items: flex-start;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: var(--radius-md);
-    padding: 18px 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
   }
-  .club-points .icon {
+  .club-points li:last-child { border-bottom: 0; padding-bottom: 0; }
+  .club-points .dot {
     flex-shrink: 0;
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: rgba(207,169,81,0.16);
-    border: 1px solid rgba(207,169,81,0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .club-points .icon span {
-    width: 14px;
-    height: 14px;
+    margin-top: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    background: var(--gold-300);
+    background: var(--gold);
   }
-  .club-points strong { display: block; font-size: 0.98rem; color: var(--white); }
-  .club-points p { margin-top: 4px; font-size: 0.88rem; color: rgba(247,244,236,0.68); }
+  .club-points strong { display: block; font-size: 0.98rem; color: var(--white); font-weight: 600; }
+  .club-points p { margin-top: 5px; font-size: 0.88rem; color: rgba(247,245,239,0.66); }
 
   /* ---------- Contact ---------- */
-  .contact { padding: 100px 0; background: var(--cream); }
+  .contact { padding: 108px 0; background: var(--bone); }
   .contact-grid {
     display: grid;
     grid-template-columns: 0.85fr 1.15fr;
-    gap: 56px;
+    gap: 64px;
     align-items: start;
   }
-  .contact-info h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); color: var(--fairway-900); margin-top: 10px; }
-  .contact-info p.lead { margin-top: 16px; color: var(--charcoal-500); font-size: 1.02rem; }
+  .contact-info h2 { font-size: clamp(1.6rem, 3vw, 2rem); color: var(--green-900); margin-top: 14px; }
+  .contact-info p.lead { margin-top: 16px; color: var(--charcoal-600); font-size: 1rem; }
   .contact-list {
-    margin-top: 32px;
+    margin-top: 34px;
     list-style: none;
     padding: 0;
     display: grid;
@@ -525,38 +439,37 @@
     display: flex;
     gap: 14px;
     align-items: center;
-    font-size: 0.96rem;
-    color: var(--charcoal-700);
+    font-size: 0.95rem;
+    color: var(--charcoal);
   }
   .contact-list .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--gold-500); flex-shrink: 0;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold); flex-shrink: 0;
   }
   .notice {
-    margin-top: 30px;
-    padding: 16px 18px;
+    margin-top: 32px;
+    padding: 18px 20px;
     border-radius: var(--radius-md);
-    background: var(--cream-dim);
+    background: var(--bone-dim);
     border: 1px solid var(--line-dark);
-    font-size: 0.86rem;
-    color: var(--charcoal-500);
+    font-size: 0.85rem;
+    color: var(--charcoal-600);
   }
 
   .booking-form {
     background: var(--white);
     border: 1px solid var(--line-dark);
     border-radius: var(--radius-lg);
-    padding: 36px;
-    box-shadow: var(--shadow-card);
+    padding: 38px;
   }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  .field { margin-bottom: 18px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .field { margin-bottom: 20px; }
   .field label {
     display: block;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: var(--fairway-900);
-    margin-bottom: 7px;
+    color: var(--green-900);
+    margin-bottom: 8px;
   }
   .field input,
   .field select,
@@ -564,16 +477,16 @@
     width: 100%;
     padding: 12px 14px;
     border-radius: var(--radius-sm);
-    border: 1px solid rgba(11,43,31,0.2);
-    background: var(--cream);
+    border: 1px solid var(--line-dark);
+    background: var(--bone);
     font-family: inherit;
-    font-size: 0.94rem;
-    color: var(--charcoal-900);
+    font-size: 0.92rem;
+    color: var(--charcoal);
   }
   .field input:focus,
   .field select:focus,
   .field textarea:focus {
-    outline: 2px solid var(--fairway-600);
+    outline: 2px solid var(--green-700);
     outline-offset: 1px;
     background: var(--white);
   }
@@ -586,13 +499,13 @@
     margin-top: 8px;
     flex-wrap: wrap;
   }
-  .form-foot small { color: var(--charcoal-300); font-size: 0.78rem; }
+  .form-foot small { color: var(--charcoal-400); font-size: 0.78rem; }
 
   /* ---------- Footer ---------- */
   .site-footer {
-    background: var(--fairway-900);
-    color: rgba(247,244,236,0.7);
-    padding: 56px 0 28px;
+    background: var(--green-900);
+    color: rgba(247,245,239,0.68);
+    padding: 60px 0 30px;
   }
   .footer-top {
     display: flex;
@@ -600,39 +513,42 @@
     align-items: flex-start;
     gap: 32px;
     flex-wrap: wrap;
-    padding-bottom: 32px;
+    padding-bottom: 36px;
     border-bottom: 1px solid var(--line);
   }
-  .footer-brand .wordmark { margin-bottom: 12px; }
-  .footer-brand p { max-width: 320px; font-size: 0.88rem; color: rgba(247,244,236,0.55); }
+  .footer-brand .wordmark { margin-bottom: 14px; }
+  .footer-brand p { max-width: 300px; font-size: 0.86rem; color: rgba(247,245,239,0.5); }
   .footer-links {
     display: flex;
-    gap: 56px;
+    gap: 60px;
     flex-wrap: wrap;
   }
   .footer-col h4 {
-    font-size: 0.78rem;
-    letter-spacing: 0.08em;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--gold-300);
-    margin-bottom: 14px;
+    color: var(--gold-light);
+    margin-bottom: 16px;
   }
-  .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-  .footer-col a { font-size: 0.9rem; color: rgba(247,244,236,0.72); }
+  .footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+  .footer-col a { font-size: 0.88rem; color: rgba(247,245,239,0.68); }
   .footer-col a:hover { color: var(--white); }
+  .footer-col li { font-size: 0.88rem; color: rgba(247,245,239,0.68); }
   .footer-bottom {
-    margin-top: 26px;
+    margin-top: 28px;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 10px;
-    font-size: 0.8rem;
-    color: rgba(247,244,236,0.45);
+    font-size: 0.78rem;
+    color: rgba(247,245,239,0.4);
   }
   .footer-club-line {
-    margin-top: 4px;
-    font-size: 0.8rem;
-    color: rgba(207,169,81,0.75);
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: rgba(200,162,74,0.7);
   }
 
   .visually-hidden {
@@ -649,34 +565,33 @@
     position: absolute;
     left: -999px;
     top: 0;
-    background: var(--gold-400);
-    color: var(--fairway-900);
+    background: var(--gold);
+    color: var(--green-900);
     padding: 12px 18px;
     z-index: 1000;
-    border-radius: 0 0 8px 0;
+    border-radius: 0 0 6px 0;
     font-weight: 700;
   }
   .skip-link:focus { left: 0; }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 980px) {
-    .clubs-grid { grid-template-columns: 1fr; gap: 40px; }
-    .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+    .clubs-grid { grid-template-columns: 1fr; gap: 44px; }
+    .contact-grid { grid-template-columns: 1fr; gap: 44px; }
     .cards { grid-template-columns: 1fr 1fr; }
-    .card.featured { transform: none; }
     .steps { grid-template-columns: 1fr 1fr; }
   }
 
   @media (max-width: 760px) {
     .nav-links {
       position: absolute;
-      top: 72px;
+      top: 76px;
       left: 0;
       right: 0;
-      background: var(--fairway-900);
+      background: var(--green-900);
       flex-direction: column;
       align-items: flex-start;
-      padding: 24px;
+      padding: 24px 28px;
       gap: 20px;
       border-bottom: 1px solid var(--line);
       display: none;
@@ -685,13 +600,14 @@
     .nav-links .btn { width: 100%; }
     .nav-cta .btn-primary.desktop-only { display: none; }
     .nav-toggle { display: flex; }
-    .hero { padding: 64px 0 80px; }
-    .hero-stats { grid-template-columns: 1fr; gap: 18px; }
+    .hero { padding: 72px 0 72px; }
+    .hero-stats { grid-template-columns: 1fr; gap: 20px; }
     .steps { grid-template-columns: 1fr; }
     .cards { grid-template-columns: 1fr; }
     .form-row { grid-template-columns: 1fr; }
     .footer-top { flex-direction: column; }
     .footer-links { gap: 32px; }
+    .how, .services, .membership, .clubs, .contact { padding: 76px 0; }
   }
 
   @media (min-width: 761px) {
@@ -703,12 +619,33 @@
 
 <a class="skip-link" href="#main">Skip to content</a>
 
+<!-- ============ EMBLEM (defined once, referenced via <use>) ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="birdie-emblem" viewBox="0 0 64 64">
+      <circle cx="32" cy="32" r="30" fill="#0b3d2c" stroke="#c8a24a" stroke-width="1.5"/>
+      <!-- small green (putting green mound) -->
+      <ellipse cx="32" cy="46" rx="18" ry="5" fill="#c8a24a" opacity="0.18"/>
+      <!-- flagstick -->
+      <line x1="32" y1="46" x2="32" y2="18" stroke="#f7f5ef" stroke-width="1.4"/>
+      <!-- flag -->
+      <path d="M32 19 L44 23 L32 27 Z" fill="#c8a24a"/>
+      <!-- ball -->
+      <circle cx="20" cy="44" r="2.6" fill="#f7f5ef"/>
+      <!-- shine sparkle -->
+      <g fill="#c8a24a" opacity="0.9">
+        <path d="M46 14 L47.3 17 L50.3 18.3 L47.3 19.6 L46 22.6 L44.7 19.6 L41.7 18.3 L44.7 17 Z"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
 <!-- ============ NAV ============ -->
 <header class="site-nav">
   <div class="wrap">
-    <a href="#top" class="wordmark" aria-label="Fairway Detail Co. home">
-      <span class="mark" aria-hidden="true"></span>
-      Fairway Detail Co.
+    <a href="#top" class="wordmark" aria-label="Birdie Detail Co. home">
+      <svg class="emblem" width="34" height="34" viewBox="0 0 64 64" aria-hidden="true"><use href="#birdie-emblem"/></svg>
+      Birdie Detail Co.
     </a>
 
     <nav class="nav-links" id="primary-nav" aria-label="Primary">
@@ -734,10 +671,11 @@
 
   <!-- ============ HERO ============ -->
   <section class="hero" id="top">
-    <div class="contour" aria-hidden="true"></div>
     <div class="wrap hero-inner">
+      <svg class="hero-emblem" width="56" height="56" viewBox="0 0 64 64" aria-hidden="true"><use href="#birdie-emblem"/></svg>
       <p class="eyebrow">Dallas &ndash; Fort Worth &middot; Member Amenity</p>
       <h1>You play. We detail. <span class="accent">Drive home brand new.</span></h1>
+      <p class="hook">Your car just made birdie.</p>
       <p class="subhead">
         Drop your keys at the bag drop before your tee time. Our technicians detail your car on-site
         while you play your round. Eighteen holes later, you're driving home in a car that looks
@@ -748,8 +686,7 @@
         <a href="#contact" class="btn btn-primary">Book a Detail</a>
         <a href="#for-clubs" class="btn btn-secondary">Partner Your Club</a>
       </div>
-    </div>
-    <div class="wrap">
+
       <div class="hero-stats">
         <div>
           <strong>4&ndash;4.5 hrs</strong>
@@ -771,29 +708,29 @@
   <section class="how" id="how-it-works">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow" style="justify-content:center">How It Works</p>
+        <p class="eyebrow center">How It Works</p>
         <h2>Detailed while you golf. That's it.</h2>
         <p>No scheduling drop-off windows, no second trip to a car wash. Four simple steps built around your tee time.</p>
       </div>
 
       <ol class="steps" style="list-style:none; padding:0; margin:0;">
         <li class="step">
-          <div class="step-num" aria-hidden="true">1</div>
+          <div class="step-num" aria-hidden="true">01</div>
           <h3>Book to match your tee time</h3>
           <p>Reserve your detail online or through your club &mdash; we schedule around when you're actually playing.</p>
         </li>
         <li class="step">
-          <div class="step-num" aria-hidden="true">2</div>
+          <div class="step-num" aria-hidden="true">02</div>
           <h3>Drop keys at the bag drop</h3>
           <p>Hand off your keys the way you always do. Our technician checks in and gets to work immediately.</p>
         </li>
         <li class="step">
-          <div class="step-num" aria-hidden="true">3</div>
+          <div class="step-num" aria-hidden="true">03</div>
           <h3>We detail in the lot while you play</h3>
           <p>Your car is hand-detailed on-site in the member lot &mdash; turf-safe products, full water reclamation.</p>
         </li>
         <li class="step">
-          <div class="step-num" aria-hidden="true">4</div>
+          <div class="step-num" aria-hidden="true">04</div>
           <h3>Drive home brand new</h3>
           <p>Finish your round, grab your keys at the bag drop, and drive home in a freshly detailed car.</p>
         </li>
@@ -805,7 +742,7 @@
   <section class="services" id="services">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow" style="justify-content:center">Services</p>
+        <p class="eyebrow center">Services</p>
         <h2>Pick your detail</h2>
         <p>Every package is sized to fit inside a single round of golf &mdash; from a quick refresh to a full paint-correction detail.</p>
       </div>
@@ -822,7 +759,7 @@
             <li>Interior wipe-down &amp; console detail</li>
             <li>Windows &amp; mirrors, in &amp; out</li>
           </ul>
-          <a href="#contact" class="btn btn-outline-dark btn-block" style="color:var(--white); border-color:rgba(255,255,255,0.4);">Book This</a>
+          <a href="#contact" class="btn btn-outline-dark btn-block">Book This</a>
         </article>
 
         <article class="card featured">
@@ -853,7 +790,7 @@
             <li>Engine bay detail (on request)</li>
             <li>Priority scheduling</li>
           </ul>
-          <a href="#contact" class="btn btn-outline-dark btn-block" style="color:var(--white); border-color:rgba(255,255,255,0.4);">Book This</a>
+          <a href="#contact" class="btn btn-outline-dark btn-block">Book This</a>
         </article>
       </div>
     </div>
@@ -863,7 +800,7 @@
   <section class="membership" id="membership">
     <div class="wrap">
       <div class="section-head">
-        <p class="eyebrow" style="justify-content:center">Membership</p>
+        <p class="eyebrow center">Membership</p>
         <h2>Make it a habit, not an errand</h2>
         <p>Monthly plans for members who want their car detailed every time they play &mdash; billed simply, no contracts.</p>
       </div>
@@ -927,35 +864,35 @@
 
       <ul class="club-points">
         <li>
-          <div class="icon" aria-hidden="true"><span></span></div>
+          <span class="dot" aria-hidden="true"></span>
           <div>
             <strong>Zero cost to the club</strong>
             <p>Members book and pay directly &mdash; no budget line, no staffing burden on your team.</p>
           </div>
         </li>
         <li>
-          <div class="icon" aria-hidden="true"><span></span></div>
+          <span class="dot" aria-hidden="true"></span>
           <div>
             <strong>Turf-safe, water-reclaimed</strong>
             <p>Low-impact products and full water reclamation keep your lot and grounds protected.</p>
           </div>
         </li>
         <li>
-          <div class="icon" aria-hidden="true"><span></span></div>
+          <span class="dot" aria-hidden="true"></span>
           <div>
             <strong>Insured &amp; uniformed technicians</strong>
             <p>Every technician is background-checked, uniformed, and covered by commercial insurance.</p>
           </div>
         </li>
         <li>
-          <div class="icon" aria-hidden="true"><span></span></div>
+          <span class="dot" aria-hidden="true"></span>
           <div>
             <strong>Optional revenue share</strong>
             <p>Clubs can opt into a revenue-share arrangement in lieu of, or alongside, the free pilot.</p>
           </div>
         </li>
         <li>
-          <div class="icon" aria-hidden="true"><span></span></div>
+          <span class="dot" aria-hidden="true"></span>
           <div>
             <strong>Free 30-day pilot</strong>
             <p>Try it with no commitment &mdash; we'll run a full month before any agreement is signed.</p>
@@ -1048,9 +985,9 @@
   <div class="wrap">
     <div class="footer-top">
       <div class="footer-brand">
-        <a href="#top" class="wordmark" aria-label="Fairway Detail Co. home">
-          <span class="mark" aria-hidden="true"></span>
-          Fairway Detail Co.
+        <a href="#top" class="wordmark" aria-label="Birdie Detail Co. home">
+          <svg class="emblem" width="32" height="32" viewBox="0 0 64 64" aria-hidden="true"><use href="#birdie-emblem"/></svg>
+          Birdie Detail Co.
         </a>
         <p>Premium on-site mobile detailing for golf &amp; country club members across Dallas&ndash;Fort Worth.</p>
       </div>
@@ -1079,7 +1016,7 @@
     </div>
 
     <div class="footer-bottom">
-      <span>&copy; 2026 Fairway Detail Co. All rights reserved.</span>
+      <span>&copy; 2026 Birdie Detail Co. All rights reserved.</span>
       <span>Dallas&ndash;Fort Worth, Texas</span>
     </div>
     <!-- TODO: swap in the actual partner club name once a partnership is signed -->
