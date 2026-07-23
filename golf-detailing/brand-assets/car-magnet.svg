@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1200" width="2400" height="1200" role="img" aria-label="Vehicle door magnet, 24x12 inches">
+  <!-- 24x12in door magnet @ 100dpi. High-contrast, readable at distance. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2c987"/><stop offset="0.5" stop-color="#c8a24a"/><stop offset="1" stop-color="#a9863a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="2400" height="1200" rx="40" fill="#0b3d2c"/>
+  <rect x="26" y="26" width="2348" height="1148" rx="24" fill="none" stroke="url(#gold)" stroke-width="6" opacity="0.8"/>
+
+  <!-- Emblem -->
+  <g transform="translate(430,600) scale(2.55)">
+    <circle r="122" fill="#0b3d2c"/>
+    <circle r="122" fill="none" stroke="url(#gold)" stroke-width="7"/>
+    <circle r="107" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.55"/>
+    <path d="M -70 44 Q 0 16 70 44 L 70 64 Q 0 84 -70 64 Z" fill="#12583e"/>
+    <rect x="-2.5" y="-58" width="5" height="102" rx="2.5" fill="url(#gold)"/>
+    <path d="M 2.5 -58 L 52 -44 L 2.5 -27 Z" fill="url(#gold)"/>
+    <circle cx="0" cy="44" r="4.5" fill="#0b3d2c" stroke="url(#gold)" stroke-width="2.5"/>
+    <g transform="translate(40,-6)" fill="#ffffff"><path d="M 0 -16 L 3.5 -3.5 L 16 0 L 3.5 3.5 L 0 16 L -3.5 3.5 L -16 0 L -3.5 -3.5 Z"/></g>
+  </g>
+
+  <!-- Wordmark + info -->
+  <text x="800" y="470" font-family="Georgia, serif" font-size="150" font-weight="700" letter-spacing="2" fill="#ffffff">FAIRWAY</text>
+  <g transform="translate(806,545)">
+    <line x1="0" y1="0" x2="150" y2="0" stroke="url(#gold)" stroke-width="5"/>
+    <text x="175" y="18" font-family="Georgia, serif" font-size="66" letter-spacing="14" fill="#e7e2d4">DETAIL CO.</text>
+  </g>
+  <text x="800" y="700" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" letter-spacing="4" fill="#c8a24a">DETAILED WHILE YOU GOLF</text>
+
+  <line x1="806" y1="770" x2="2160" y2="770" stroke="#2c6a4f" stroke-width="3"/>
+
+  <text x="806" y="880" font-family="'Helvetica Neue', Arial, sans-serif" font-size="70" font-weight="700" fill="#ffffff">[ 555-000-0000 ]</text>
+  <text x="806" y="980" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" fill="#e7e2d4">[ fairwaydetail.co ]</text>
+  <text x="806" y="1060" font-family="'Helvetica Neue', Arial, sans-serif" font-size="40" fill="#9fc4b2" font-style="italic">Fully insured · Turf-safe · Dallas–Fort Worth</text>
+</svg>

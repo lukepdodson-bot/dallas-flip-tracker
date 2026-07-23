@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fairway Detail Co. — Brand Assets</title>
+<style>
+  :root { --green:#0b3d2c; --gold:#c8a24a; --bone:#f7f5ef; --sage:#4a6357; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bone); color:#1a2b22; }
+  header { background:var(--green); color:#fff; padding:28px 24px; text-align:center; }
+  header h1 { margin:0 0 6px; font-family:Georgia,serif; letter-spacing:2px; font-weight:700; }
+  header p { margin:0; color:var(--gold); letter-spacing:3px; font-size:13px; }
+  main { max-width:1000px; margin:0 auto; padding:28px 20px 60px; }
+  .card { background:#fff; border:1px solid #e6e0d1; border-radius:12px; padding:22px; margin-bottom:26px; box-shadow:0 2px 10px rgba(11,61,44,.05); }
+  .card h2 { margin:0 0 4px; font-family:Georgia,serif; color:var(--green); font-size:20px; }
+  .card .use { margin:0 0 16px; color:var(--sage); font-size:14px; }
+  .frame { display:flex; justify-content:center; align-items:center; background:#faf8f2; border:1px dashed #d9d2c2; border-radius:8px; padding:20px; }
+  .frame.dark { background:var(--green); }
+  .frame img { max-width:100%; height:auto; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .prints { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .prints img { max-height:520px; box-shadow:0 4px 18px rgba(0,0,0,.14); }
+  @media (max-width:720px){ .two,.prints{ grid-template-columns:1fr; } }
+  .swatches { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+  .sw { width:96px; height:64px; border-radius:8px; display:flex; align-items:flex-end; padding:6px; font-size:11px; color:#fff; }
+  footer { text-align:center; color:var(--sage); font-size:13px; padding:20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Fairway Detail Co.</h1>
+  <p>BRAND ASSETS · DRAFT V1</p>
+</header>
+<main>
+  <div class="card">
+    <h2>Primary logo</h2>
+    <p class="use">Website header, proposals, invoices, email signature.</p>
+    <div class="frame"><img src="logo-primary.svg" alt="Primary logo"></div>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <h2>Emblem — on light</h2>
+      <p class="use">Favicon, avatar, small spaces.</p>
+      <div class="frame"><img src="logo-icon.svg" alt="Emblem light" style="width:230px"></div>
+    </div>
+    <div class="card">
+      <h2>Emblem — on green</h2>
+      <p class="use">Polo shirts, dark backgrounds.</p>
+      <div class="frame dark"><img src="logo-icon.svg" alt="Emblem dark" style="width:230px"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Print pieces</h2>
+    <p class="use">Bag-drop sign-up card (4×6 in) and vehicle door magnet (24×12 in). Placeholders swap to real phone/URL/QR before printing.</p>
+    <div class="prints">
+      <div class="frame"><img src="bag-drop-card.svg" alt="Bag-drop card"></div>
+      <div class="frame" style="align-items:flex-start"><img src="car-magnet.svg" alt="Car magnet"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Palette</h2>
+    <div class="swatches">
+      <div class="sw" style="background:#0b3d2c">#0b3d2c</div>
+      <div class="sw" style="background:#12583e">#12583e</div>
+      <div class="sw" style="background:#157049">#157049</div>
+      <div class="sw" style="background:#c8a24a">#c8a24a</div>
+      <div class="sw" style="background:#4a6357">#4a6357</div>
+      <div class="sw" style="background:#f7f5ef;color:#4a6357;border:1px solid #e0d9c8">#f7f5ef</div>
+    </div>
+  </div>
+</main>
+<footer>Fairway Detail Co. · Dallas–Fort Worth · draft identity, editable SVG</footer>
+</body>
+</html>

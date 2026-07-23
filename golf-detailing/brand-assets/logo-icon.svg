@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Fairway Detail Co. emblem">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2c987"/>
+      <stop offset="0.5" stop-color="#c8a24a"/>
+      <stop offset="1" stop-color="#a9863a"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(128,128)">
+    <circle r="122" fill="#0b3d2c"/>
+    <circle r="122" fill="none" stroke="url(#gold)" stroke-width="7"/>
+    <circle r="107" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.55"/>
+
+    <!-- FD monogram arc text -->
+    <path id="top" d="M -86 0 A 86 86 0 0 1 86 0" fill="none"/>
+    <path id="bot" d="M -74 26 A 74 74 0 0 0 74 26" fill="none"/>
+    <text font-family="Georgia, serif" font-size="15" letter-spacing="4" fill="url(#gold)">
+      <textPath href="#top" startOffset="50%" text-anchor="middle">FAIRWAY DETAIL CO.</textPath>
+    </text>
+    <text font-family="Georgia, serif" font-size="11" letter-spacing="3" fill="url(#gold)" opacity="0.85">
+      <textPath href="#bot" startOffset="50%" text-anchor="middle">DALLAS · FORT WORTH</textPath>
+    </text>
+
+    <!-- putting-green mound -->
+    <path d="M -70 44 Q 0 16 70 44 L 70 64 Q 0 84 -70 64 Z" fill="#12583e"/>
+    <ellipse cx="0" cy="44" rx="70" ry="14" fill="#157049" opacity="0.6"/>
+
+    <!-- flagstick + flag -->
+    <rect x="-2.5" y="-58" width="5" height="102" rx="2.5" fill="url(#gold)"/>
+    <path d="M 2.5 -58 L 52 -44 L 2.5 -27 Z" fill="url(#gold)"/>
+    <circle cx="0" cy="44" r="4.5" fill="#0b3d2c" stroke="url(#gold)" stroke-width="2.5"/>
+
+    <!-- shine sparkle -->
+    <g transform="translate(40,-6)" fill="#ffffff">
+      <path d="M 0 -16 L 3.5 -3.5 L 16 0 L 3.5 3.5 L 0 16 L -3.5 3.5 L -16 0 L -3.5 -3.5 Z" opacity="0.95"/>
+    </g>
+    <circle cx="58" cy="16" r="2.6" fill="#ffffff" opacity="0.8"/>
+  </g>
+</svg>

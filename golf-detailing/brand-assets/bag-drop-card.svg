@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" width="1200" height="1800" role="img" aria-label="Bag-drop sign-up card, 4x6 inches">
+  <!-- 4x6in @ 300dpi. Print with 0.125in bleed if commercial. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2c987"/><stop offset="0.5" stop-color="#c8a24a"/><stop offset="1" stop-color="#a9863a"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1800" fill="#f7f5ef"/>
+  <rect x="24" y="24" width="1152" height="1752" fill="none" stroke="url(#gold)" stroke-width="3"/>
+
+  <!-- Header band -->
+  <rect x="24" y="24" width="1152" height="470" fill="#0b3d2c"/>
+
+  <!-- Emblem -->
+  <g transform="translate(600,210) scale(1.15)">
+    <circle r="122" fill="#0b3d2c"/>
+    <circle r="122" fill="none" stroke="url(#gold)" stroke-width="7"/>
+    <path d="M -70 44 Q 0 16 70 44 L 70 64 Q 0 84 -70 64 Z" fill="#12583e"/>
+    <rect x="-2.5" y="-58" width="5" height="102" rx="2.5" fill="url(#gold)"/>
+    <path d="M 2.5 -58 L 52 -44 L 2.5 -27 Z" fill="url(#gold)"/>
+    <circle cx="0" cy="44" r="4.5" fill="#0b3d2c" stroke="url(#gold)" stroke-width="2.5"/>
+    <g transform="translate(40,-6)" fill="#ffffff"><path d="M 0 -16 L 3.5 -3.5 L 16 0 L 3.5 3.5 L 0 16 L -3.5 3.5 L -16 0 L -3.5 -3.5 Z"/></g>
+  </g>
+
+  <text x="600" y="415" text-anchor="middle" font-family="Georgia, serif" font-size="58" font-weight="700" letter-spacing="3" fill="#ffffff">FAIRWAY DETAIL CO.</text>
+  <text x="600" y="462" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="24" letter-spacing="4" fill="#c8a24a">DETAILED WHILE YOU GOLF</text>
+
+  <!-- Pitch -->
+  <text x="600" y="600" text-anchor="middle" font-family="Georgia, serif" font-size="46" font-weight="700" fill="#0b3d2c">You play. We detail.</text>
+  <text x="600" y="656" text-anchor="middle" font-family="Georgia, serif" font-size="46" font-weight="700" fill="#0b3d2c">Drive home brand new.</text>
+
+  <!-- Steps -->
+  <g font-family="'Helvetica Neue', Arial, sans-serif" fill="#33463d">
+    <text x="120" y="770" font-size="30"><tspan fill="#c8a24a" font-weight="700">1  </tspan>Drop your keys here at the bag drop</text>
+    <text x="120" y="828" font-size="30"><tspan fill="#c8a24a" font-weight="700">2  </tspan>Play your round</text>
+    <text x="120" y="886" font-size="30"><tspan fill="#c8a24a" font-weight="700">3  </tspan>Drive home to a freshly detailed car</text>
+  </g>
+
+  <line x1="120" y1="940" x2="1080" y2="940" stroke="#d9d2c2" stroke-width="2"/>
+
+  <!-- Sign-up fields -->
+  <g font-family="'Helvetica Neue', Arial, sans-serif" fill="#4a6357" font-size="28">
+    <text x="120" y="1015">Name</text>            <line x1="300" y1="1025" x2="1080" y2="1025" stroke="#9aa89f" stroke-width="2"/>
+    <text x="120" y="1095">Mobile</text>          <line x1="300" y1="1105" x2="1080" y2="1105" stroke="#9aa89f" stroke-width="2"/>
+    <text x="120" y="1175">Vehicle / Color</text> <line x1="360" y1="1185" x2="1080" y2="1185" stroke="#9aa89f" stroke-width="2"/>
+    <text x="120" y="1255">Parking spot #</text>  <line x1="360" y1="1265" x2="1080" y2="1265" stroke="#9aa89f" stroke-width="2"/>
+  </g>
+
+  <!-- Service tick boxes -->
+  <g font-family="'Helvetica Neue', Arial, sans-serif" fill="#33463d" font-size="26">
+    <rect x="120" y="1315" width="30" height="30" fill="none" stroke="#0b3d2c" stroke-width="2.5"/>
+    <text x="168" y="1339">The Turn — express ($75–95)</text>
+    <rect x="120" y="1375" width="30" height="30" fill="none" stroke="#0b3d2c" stroke-width="2.5"/>
+    <text x="168" y="1399">The Full Round — complete detail ($185–245)</text>
+    <rect x="120" y="1435" width="30" height="30" fill="none" stroke="#0b3d2c" stroke-width="2.5"/>
+    <text x="168" y="1459">The Championship — detail + polish ($350–450)</text>
+  </g>
+
+  <!-- Footer / QR -->
+  <rect x="24" y="1560" width="1152" height="216" fill="#0b3d2c"/>
+  <g transform="translate(90,1600)">
+    <rect width="136" height="136" fill="#ffffff"/>
+    <text x="68" y="74" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#0b3d2c">[ QR:</text>
+    <text x="68" y="96" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-size="16" fill="#0b3d2c">book ]</text>
+  </g>
+  <text x="270" y="1655" font-family="'Helvetica Neue', Arial, sans-serif" font-size="30" fill="#ffffff">Scan to book, or hand this card to the</text>
+  <text x="270" y="1697" font-family="'Helvetica Neue', Arial, sans-serif" font-size="30" fill="#ffffff">bag-drop attendant.</text>
+  <text x="270" y="1745" font-family="'Helvetica Neue', Arial, sans-serif" font-size="26" fill="#c8a24a">[phone]  ·  [website]</text>
+</svg>
