@@ -17,6 +17,18 @@ brand**. That reshaped the pick.
   members' tier. Minor note: phonetic proximity to the film *Caddyshack* — glance at it.
 - **"The Turn" — weak for ownership.** No exact apparel brand, but "Turn" is generic and
   common at courses; hard to trademark/own.
+- **"Caddy 19" — STRONG, appears open.** No exact brand/trademark surfaced. Double golf
+  meaning (*caddy* = handled-while-you-play + *19* = the 19th hole/clubhouse). The number
+  gives distinctiveness and merch appeal ("19" on a hat/polo), making it arguably the
+  best fit for the **apparel/lifestyle** ambition — it's not tied to "detailing," so it
+  stretches across a clothing line. Watch-outs: (1) "Caddy" = Cadillac slang and we're in
+  the *car* business — minor false-association risk; GM is protective of "Caddy" marks, so
+  check in clearance; (2) not self-explanatory, so the tagline must carry the "detailed
+  while you golf" message. Members' tier could be "The 19 Club."
+
+**Current front-runners:** **Caddy 19** (best for a merch/lifestyle brand) vs.
+**Caddyshine** (best for service clarity). Both appear open; both need formal USPTO +
+`.com` + TX DBA clearance before filing.
 
 > These are preliminary web + USPTO-listing scans, **not legal clearance.** Before
 > filing/printing, Luke should run a proper USPTO clearance search, `.com` check, and TX
