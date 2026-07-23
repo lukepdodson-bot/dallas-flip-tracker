@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 280" width="920" height="280" role="img" aria-label="Fairway Detail Co. logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 380" width="980" height="380" role="img" aria-label="Caddy 19 logo">
   <defs>
     <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#e2c987"/>
@@ -7,37 +7,43 @@
     </linearGradient>
   </defs>
 
-  <!-- Emblem -->
-  <g transform="translate(140,140)">
-    <circle r="118" fill="#0b3d2c"/>
-    <circle r="118" fill="none" stroke="url(#gold)" stroke-width="6"/>
-    <circle r="104" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.55"/>
+  <!-- Crest -->
+  <g transform="translate(190,190)">
+    <circle r="150" fill="#0b3d2c"/>
+    <circle r="150" fill="none" stroke="url(#gold)" stroke-width="7"/>
+    <circle r="133" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.5"/>
 
-    <!-- putting-green mound -->
-    <path d="M -78 46 Q 0 14 78 46 L 78 70 Q 0 92 -78 70 Z" fill="#12583e"/>
-    <ellipse cx="0" cy="46" rx="78" ry="16" fill="#157049" opacity="0.6"/>
+    <!-- arched top text -->
+    <path id="lp-top" d="M -108 0 A 108 108 0 0 1 108 0" fill="none"/>
+    <text font-family="Georgia, serif" font-size="30" font-weight="700" letter-spacing="10" fill="url(#gold)">
+      <textPath href="#lp-top" startOffset="50%" text-anchor="middle">CADDY</textPath>
+    </text>
+    <!-- arched bottom text -->
+    <path id="lp-bot" d="M -104 34 A 104 104 0 0 0 104 34" fill="none"/>
+    <text font-family="'Helvetica Neue', Arial, sans-serif" font-size="15" letter-spacing="6" fill="url(#gold)" opacity="0.9">
+      <textPath href="#lp-bot" startOffset="50%" text-anchor="middle">DALLAS · FORT WORTH</textPath>
+    </text>
 
-    <!-- flagstick + flag -->
-    <rect x="-2.5" y="-64" width="5" height="112" rx="2.5" fill="url(#gold)"/>
-    <path d="M 2.5 -64 L 58 -49 L 2.5 -30 Z" fill="url(#gold)"/>
-    <circle cx="0" cy="48" r="5" fill="#0b3d2c" stroke="url(#gold)" stroke-width="2.5"/>
+    <!-- hero 19 -->
+    <text x="0" y="34" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="118" font-weight="700" fill="#ffffff" letter-spacing="-2">19</text>
 
-    <!-- shine sparkle (the 'detail' cue) -->
-    <g transform="translate(44,-8)" fill="#ffffff">
-      <path d="M 0 -18 L 4 -4 L 18 0 L 4 4 L 0 18 L -4 4 L -18 0 L -4 -4 Z" opacity="0.95"/>
+    <!-- flag over the numerals -->
+    <g transform="translate(2,-40)">
+      <rect x="-1.5" y="-46" width="3" height="70" rx="1.5" fill="url(#gold)"/>
+      <path d="M 1.5 -46 L 34 -36 L 1.5 -25 Z" fill="url(#gold)"/>
     </g>
-    <circle cx="66" cy="18" r="3" fill="#ffffff" opacity="0.8"/>
-    <circle cx="30" cy="20" r="2" fill="#ffffff" opacity="0.7"/>
+    <!-- shine sparkle -->
+    <g transform="translate(70,-66)" fill="#ffffff"><path d="M 0 -13 L 3 -3 L 13 0 L 3 3 L 0 13 L -3 3 L -13 0 L -3 -3 Z" opacity="0.9"/></g>
   </g>
 
   <!-- Wordmark -->
-  <g transform="translate(300,0)">
-    <text x="0" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="74" font-weight="700" letter-spacing="2" fill="#0b3d2c">FAIRWAY</text>
-    <g transform="translate(4,150)">
-      <line x1="0" y1="0" x2="120" y2="0" stroke="url(#gold)" stroke-width="3"/>
-      <text x="140" y="9" font-family="Georgia, 'Times New Roman', serif" font-size="30" font-weight="400" letter-spacing="8" fill="#33463d" text-anchor="middle">DETAIL CO.</text>
-      <line x1="272" y1="0" x2="392" y2="0" stroke="url(#gold)" stroke-width="3"/>
+  <g transform="translate(390,0)">
+    <text x="0" y="175" font-family="Georgia, 'Times New Roman', serif" font-size="98" font-weight="700" letter-spacing="1" fill="#0b3d2c">CADDY</text>
+    <text x="330" y="175" font-family="Georgia, 'Times New Roman', serif" font-size="98" font-weight="700" fill="#c8a24a">19</text>
+    <g transform="translate(4,212)">
+      <line x1="0" y1="0" x2="470" y2="0" stroke="url(#gold)" stroke-width="3"/>
     </g>
-    <text x="4" y="205" font-family="'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="400" letter-spacing="3" fill="#4a6357">YOU PLAY. WE DETAIL. DRIVE HOME BRAND NEW.</text>
+    <text x="4" y="250" font-family="'Helvetica Neue', Arial, sans-serif" font-size="21" letter-spacing="4" fill="#33463d">DETAILED WHILE YOU GOLF</text>
+    <text x="4" y="292" font-family="'Helvetica Neue', Arial, sans-serif" font-size="17" letter-spacing="1" fill="#4a6357" font-style="italic">You play. We detail. Drive home brand new.</text>
   </g>
 </svg>

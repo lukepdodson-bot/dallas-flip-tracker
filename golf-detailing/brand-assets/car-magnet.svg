@@ -14,24 +14,24 @@
     <circle r="122" fill="#0b3d2c"/>
     <circle r="122" fill="none" stroke="url(#gold)" stroke-width="7"/>
     <circle r="107" fill="none" stroke="url(#gold)" stroke-width="1.5" opacity="0.55"/>
-    <path d="M -70 44 Q 0 16 70 44 L 70 64 Q 0 84 -70 64 Z" fill="#12583e"/>
-    <rect x="-2.5" y="-58" width="5" height="102" rx="2.5" fill="url(#gold)"/>
-    <path d="M 2.5 -58 L 52 -44 L 2.5 -27 Z" fill="url(#gold)"/>
-    <circle cx="0" cy="44" r="4.5" fill="#0b3d2c" stroke="url(#gold)" stroke-width="2.5"/>
-    <g transform="translate(40,-6)" fill="#ffffff"><path d="M 0 -16 L 3.5 -3.5 L 16 0 L 3.5 3.5 L 0 16 L -3.5 3.5 L -16 0 L -3.5 -3.5 Z"/></g>
+    <text x="0" y="32" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="92" font-weight="700" fill="#ffffff" letter-spacing="-2">19</text>
+    <g transform="translate(2,-36)">
+      <rect x="-1.8" y="-36" width="3.6" height="54" rx="1.8" fill="url(#gold)"/>
+      <path d="M 1.8 -36 L 30 -27 L 1.8 -19 Z" fill="url(#gold)"/>
+    </g>
+    <g transform="translate(50,-48)" fill="#ffffff"><path d="M 0 -12 L 2.8 -2.8 L 12 0 L 2.8 2.8 L 0 12 L -2.8 2.8 L -12 0 L -2.8 -2.8 Z" opacity="0.95"/></g>
   </g>
 
   <!-- Wordmark + info -->
-  <text x="800" y="470" font-family="Georgia, serif" font-size="150" font-weight="700" letter-spacing="2" fill="#ffffff">FAIRWAY</text>
+  <text x="800" y="470" font-family="Georgia, serif" font-size="150" font-weight="700" letter-spacing="2" fill="#ffffff">CADDY <tspan fill="url(#gold)">19</tspan></text>
   <g transform="translate(806,545)">
     <line x1="0" y1="0" x2="150" y2="0" stroke="url(#gold)" stroke-width="5"/>
-    <text x="175" y="18" font-family="Georgia, serif" font-size="66" letter-spacing="14" fill="#e7e2d4">DETAIL CO.</text>
   </g>
   <text x="800" y="700" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" letter-spacing="4" fill="#c8a24a">DETAILED WHILE YOU GOLF</text>
 
   <line x1="806" y1="770" x2="2160" y2="770" stroke="#2c6a4f" stroke-width="3"/>
 
   <text x="806" y="880" font-family="'Helvetica Neue', Arial, sans-serif" font-size="70" font-weight="700" fill="#ffffff">[ 555-000-0000 ]</text>
-  <text x="806" y="980" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" fill="#e7e2d4">[ fairwaydetail.co ]</text>
+  <text x="806" y="980" font-family="'Helvetica Neue', Arial, sans-serif" font-size="52" fill="#e7e2d4">[ caddy19.com ]</text>
   <text x="806" y="1060" font-family="'Helvetica Neue', Arial, sans-serif" font-size="40" fill="#9fc4b2" font-style="italic">Fully insured · Turf-safe · Dallas–Fort Worth</text>
 </svg>

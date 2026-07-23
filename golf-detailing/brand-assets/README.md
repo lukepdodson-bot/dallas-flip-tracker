@@ -1,4 +1,4 @@
-# Brand Assets — Fairway Detail Co.
+# Brand Assets — Caddy 19
 
 Draft, editable vector files (SVG = infinite scale, no designer needed). Open
 `preview.html` to see them all together.
@@ -17,7 +17,7 @@ Draft, editable vector files (SVG = infinite scale, no designer needed). Open
 
 | Role | Hex | Notes |
 |------|-----|-------|
-| Fairway Green (primary) | `#0b3d2c` | Backgrounds, wordmark, trust. |
+| Deep Green (primary) | `#0b3d2c` | Backgrounds, wordmark, trust. |
 | Green mid | `#12583e` / `#157049` | Emblem depth. |
 | Gold (accent) | `#c8a24a` (gradient `#e2c987`→`#a9863a`) | Premium accent, rules, flag. |
 | Charcoal text | `#33463d` / `#1a2b22` | Body copy. |
@@ -44,6 +44,6 @@ Draft, editable vector files (SVG = infinite scale, no designer needed). Open
 
 ## Notes
 
-- These are a strong, coherent first identity at zero cost. If you later want a
+- These are a strong, coherent Caddy 19 identity at zero cost. If you later want a
   hand-crafted logo, this gives a designer a clear direction to refine rather than a
   blank page.
