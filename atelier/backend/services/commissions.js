@@ -474,10 +474,14 @@ function logEvent(commissionId, fromState, toState, actorId, actorRole, note) {
   `).run(commissionId, fromState, toState, actorId, actorRole, note || null);
 }
 
-/** detail() without the viewer check, for internal callers that already know. */
+/**
+ * The system's own view of a commission, for internal callers and for tests
+ * driving the service directly. Routes must not hand this to a user: it is
+ * built as an admin, so its `role` and `availableActions` are not that user's.
+ * Every route re-reads detail() for the caller after acting.
+ */
 function detailInternal(commissionId) {
-  const commission = get(commissionId);
-  return detail(commissionId, { id: commission.buyer_id, roles: '' });
+  return detail(commissionId, { id: null, roles: 'admin' });
 }
 
 module.exports = {

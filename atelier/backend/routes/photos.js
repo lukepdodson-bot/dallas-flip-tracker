@@ -233,12 +233,17 @@ router.put('/:id/skus', requireAuth, requireRole('photographer'), (req, res) => 
 
 // ── File delivery ────────────────────────────────────────────────────────────
 
-router.get('/:id/display', (req, res) => serveRendition(req, res, 'display_file'));
-router.get('/:id/thumb',   (req, res) => serveRendition(req, res, 'thumb_file'));
+router.get('/:id/display', optionalAuth, (req, res) => serveRendition(req, res, 'display_file'));
+router.get('/:id/thumb',   optionalAuth, (req, res) => serveRendition(req, res, 'thumb_file'));
 
 function serveRendition(req, res, column) {
   const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(req.params.id);
   if (!photo || !photo[column] || !files.exists(photo[column])) return res.status(404).end();
+
+  // A draft is not public. Its owner still needs to see it in their studio, and
+  // anyone party to a commission on it needs it on the commission page even if
+  // the photographer has since withdrawn the image.
+  if (photo.status !== 'published' && !canSeeUnpublished(photo, req.currentUser)) return res.status(404).end();
   res.type(contentTypeFor(photo[column]));
   res.setHeader('Cache-Control', 'private, max-age=3600');
   res.send(files.read(photo[column]));
@@ -287,6 +292,16 @@ router.get('/:id/licensed', requireAuth, (req, res) => {
   res.setHeader('X-Atelier-Trace', marked.embedded ? watermarkId : `${watermarkId}; ledger-only`);
   res.send(marked.buffer);
 });
+
+function canSeeUnpublished(photo, user) {
+  if (!user) return false;
+  if (photo.photographer_id === user.id) return true;
+  return Boolean(db.prepare(`
+    SELECT 1 FROM commissions
+     WHERE photo_id = ? AND (buyer_id = ? OR painter_id = ? OR photographer_id = ?)
+     LIMIT 1
+  `).get(photo.id, user.id, user.id, user.id));
+}
 
 function ownedPhoto(req, res) {
   const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(req.params.id);

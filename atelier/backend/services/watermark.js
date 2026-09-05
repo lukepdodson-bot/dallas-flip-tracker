@@ -20,6 +20,7 @@
  */
 const crypto  = require('crypto');
 const signing = require('./signing');
+const { canonicalise } = require('./canonical');
 
 const JPEG_MARKER = 0xeb;                        // APP11
 const SIGNATURE   = Buffer.from('ATLRTRACE\0', 'latin1');
@@ -35,16 +36,22 @@ function newWatermarkId() {
  * The payload written into the file. Signed so a stripped-and-forged marker
  * cannot be used to pin a leak on an innocent licensee.
  */
+function digestOf(body) {
+  // Canonical form, not JSON.stringify: the verifier reconstructs this object
+  // by destructuring a parsed payload, and key order must not be what decides
+  // whether a mark verifies.
+  return crypto.createHash('sha256').update(canonicalise(body)).digest('hex');
+}
+
 function buildPayload({ watermarkId, licenseId, issuedAt = new Date().toISOString() }) {
   const body = { v: 1, id: watermarkId, lic: licenseId, iss: issuedAt };
-  const sig  = signing.sign(crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex'));
-  return Buffer.from(JSON.stringify({ ...body, sig, kid: signing.keyId() }), 'utf8');
+  return Buffer.from(JSON.stringify({ ...body, sig: signing.sign(digestOf(body)), kid: signing.keyId() }), 'utf8');
 }
 
 function verifyPayload(payload) {
   const { sig, kid, ...body } = payload;
   if (!sig) return false;
-  return signing.verify(crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex'), sig);
+  return signing.verify(digestOf(body), sig);
 }
 
 function detectFormat(buffer) {

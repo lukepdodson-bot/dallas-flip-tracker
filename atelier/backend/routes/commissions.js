@@ -64,56 +64,63 @@ router.get('/:id', requireAuth, loadCommission, (req, res) => res.json(req.commi
  */
 router.post('/:id/confirm-payment', requireAuth, loadCommission, async (req, res) => {
   try {
-    res.json(await commissions.confirmFunding(req.commission.id));
+    await commissions.confirmFunding(req.commission.id);
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/sign - sign the licence as whichever party you are
 router.post('/:id/sign', requireAuth, loadCommission, (req, res) => {
   try {
-    res.json(commissions.signLicense(Number(req.params.id), {
+    const { license } = commissions.signLicense(req.commission.id, {
       user: req.currentUser,
       typedName: req.body?.typedName,
       ip: req.ip,
       userAgent: req.headers['user-agent'],
-    }));
+    });
+    res.json({ license, commission: commissions.detail(req.commission.id, req.currentUser) });
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/deliver
 router.post('/:id/deliver', requireAuth, loadCommission, (req, res) => {
   try {
-    res.json(commissions.deliver(Number(req.params.id), {
+    commissions.deliver(req.commission.id, {
       user: req.currentUser, note: req.body?.note, images: req.body?.images || [],
-    }));
+    });
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/accept - releases escrow and issues the certificate
 router.post('/:id/accept', requireAuth, loadCommission, async (req, res) => {
   try {
-    res.json(await commissions.accept(Number(req.params.id), { user: req.currentUser }));
+    await commissions.accept(req.commission.id, { user: req.currentUser });
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/dispute
 router.post('/:id/dispute', requireAuth, loadCommission, (req, res) => {
   try {
-    res.json(commissions.dispute(Number(req.params.id), { user: req.currentUser, reason: req.body?.reason }));
+    commissions.dispute(req.commission.id, { user: req.currentUser, reason: req.body?.reason });
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/cancel
 router.post('/:id/cancel', requireAuth, loadCommission, (req, res) => {
   try {
-    res.json(commissions.cancel(Number(req.params.id), { user: req.currentUser, reason: req.body?.reason }));
+    commissions.cancel(req.commission.id, { user: req.currentUser, reason: req.body?.reason });
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 
 // POST /api/commissions/:id/refund
 router.post('/:id/refund', requireAuth, loadCommission, async (req, res) => {
   try {
-    res.json(await commissions.refund(Number(req.params.id), { user: req.currentUser, reason: req.body?.reason }));
+    await commissions.refund(req.commission.id, { user: req.currentUser, reason: req.body?.reason });
+    res.json(commissions.detail(req.commission.id, req.currentUser));
   } catch (err) { fail(res, err); }
 });
 

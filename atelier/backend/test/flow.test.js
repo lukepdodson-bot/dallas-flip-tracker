@@ -136,6 +136,23 @@ test('a photo without a display copy cannot be published', async () => {
   assert.match(publish.body.error, /display copy/);
 });
 
+test('an unpublished image is not browsable, and neither is its display copy', async () => {
+  const form = new FormData();
+  form.append('file',    new Blob([makePng(300, 300, [40, 40, 40], [200, 200, 200])]), 'private.png');
+  form.append('display', new Blob([makePng(200, 200, [40, 40, 40], [200, 200, 200])]), 'private-web.png');
+  form.append('title', 'Not for the library');
+
+  const upload = await call('POST', '/api/photos', { as: 'ada', form });
+  const draftId = upload.body.photo.id;
+
+  assert.strictEqual((await call('GET', `/api/photos/${draftId}`)).status, 404, 'a draft is not readable');
+  assert.strictEqual((await call('GET', `/api/photos/${draftId}/display`)).status, 404,
+    'and neither is the file behind it, or the draft leaks to anyone who guesses an id');
+
+  // Its owner still needs to see it in their own studio.
+  assert.strictEqual((await call('GET', `/api/photos/${draftId}/display`, { as: 'ada' })).status, 200);
+});
+
 test('the photographer sets a floor price and publishes', async () => {
   const skus = await call('PUT', `/api/photos/${ids.photo}/skus`, {
     as: 'ada', body: { commission: { enabled: true, floorPriceCents: 15000 } },
@@ -298,6 +315,15 @@ test('the painter delivers, and the buyer is given a deadline that releases escr
   assert.strictEqual(r.status, 200);
   assert.strictEqual(r.body.state, 'delivered');
   assert.ok(r.body.auto_accept_at, 'escrow must not be able to sit open indefinitely');
+
+  // The view handed back after an action has to be the caller's own, or the UI
+  // renders someone else's buttons.
+  assert.strictEqual(r.body.role, 'painter');
+  assert.ok(!r.body.availableActions.includes('accept'), 'a painter cannot accept for the buyer');
+
+  const buyerView = await call('GET', `/api/commissions/${ids.commission}`, { as: 'sam' });
+  assert.strictEqual(buyerView.body.role, 'buyer');
+  assert.ok(buyerView.body.availableActions.includes('accept'));
 });
 
 test('accepting releases escrow, splits the money and issues the certificate', async () => {
