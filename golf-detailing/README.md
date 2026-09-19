@@ -29,6 +29,8 @@ go-to-market, budget, capex, labor, ops, launch) is built out here.
 | `08-budget-breakdown.md` | Detailed use-of-funds: bootstrap vs funded, break-even, monthly opex. |
 | `09-capex-and-rig-plan.md` | Truck/trailer + equipment plan, buy-vs-lease, phased capex roadmap. |
 | `10-labor-and-scheduling.md` | Hiring model + pay structure + the worker scheduling/job-signup tool (build vs buy). |
+| `11-economics-single-and-scaled.md` | Unit economics: one club vs. scaled DFW — P&Ls, startup costs, break-even, hidden costs. |
+| `Caddy19-economics-model.xlsx` | Adjustable financial model (edit any assumption; both scenarios recompute). |
 | `brand-assets/` | Logo, emblem, bag-drop card, car magnet, palette + `preview.html`. |
 | `website/index.html` | Self-contained one-page marketing site. |
 | `updates/` | Ready-to-send email update drafts. |
