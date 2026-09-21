@@ -31,6 +31,7 @@ go-to-market, budget, capex, labor, ops, launch) is built out here.
 | `10-labor-and-scheduling.md` | Hiring model + pay structure + the worker scheduling/job-signup tool (build vs buy). |
 | `11-economics-single-and-scaled.md` | Unit economics: one club vs. scaled DFW — P&Ls, startup costs, break-even, hidden costs. |
 | `Caddy19-economics-model.xlsx` | Adjustable financial model (edit any assumption; both scenarios recompute). |
+| `Caddy19-one-crew-projections.xlsx` | One-crew model: Van vs Tesla setup + sensitivity grids (cars/day, crews, ticket). |
 | `brand-assets/` | Logo, emblem, bag-drop card, car magnet, palette + `preview.html`. |
 | `website/index.html` | Self-contained one-page marketing site. |
 | `updates/` | Ready-to-send email update drafts. |
